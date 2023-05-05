@@ -1,0 +1,6 @@
+framework module Pods_Parking_Admin {
+  umbrella header "Pods-Parking_Admin-umbrella.h"
+
+  export *
+  module * { export * }
+}
