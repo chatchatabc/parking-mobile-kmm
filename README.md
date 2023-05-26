@@ -1,3 +1,14 @@
-# Multiplatform Parking Owner App using Kotlin Multiplatform Mobile
+Parking Owner App using KMM
+===========================
 
-> This README is a work-in-progress. This document will be filled soon with more details.
+# Features
+
+* Parking Owner registration and login
+* Maintain parking lot information
+* Parking check-in and check-out
+
+# References
+
+* Kotlin Multiplatform Mobile: https://kotlinlang.org/lp/multiplatform/
+* Get started with Kotlin Multiplatform for
+  mobile: https://kotlinlang.org/docs/multiplatform-mobile-getting-started.html
