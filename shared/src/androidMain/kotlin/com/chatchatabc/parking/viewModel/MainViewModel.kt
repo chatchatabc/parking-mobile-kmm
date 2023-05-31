@@ -34,7 +34,7 @@ class MainViewModel(
     }
 
     fun clearAuthToken() {
-        sharedPreferences.edit().remove("authToken").apply()
         // Change activity to loginActivity
+        sharedPreferences.edit().remove("authToken").apply()
     }
 }
