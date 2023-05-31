@@ -25,7 +25,7 @@ class ClientMainViewModel(
         load {
             parkingAPI.getAllParkingLots().let { response ->
                 parkingRealm.writeBlocking {
-                    if (!response.error) response.data?.forEach { parkingLot ->
+                    if (response.errors.isNullOrEmpty()) response.data?.forEach { parkingLot ->
                         copyToRealm(
                             instance = parkingLot.let {
                                 ParkingLotRealmObject().apply {
