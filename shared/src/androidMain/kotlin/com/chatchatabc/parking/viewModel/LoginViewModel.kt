@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.LoginAPI
-import com.chatchatabc.parking.model.User
+import com.chatchatabc.parking.model.Member
 import com.chatchatabc.parking.model.dto.LoginDTO
 import com.chatchatabc.parking.model.dto.OTPLoginDTO
 import com.chatchatabc.parking.model.response.ApiResponse
@@ -50,25 +50,24 @@ class LoginViewModel(
     var hasUserDetails = false
 
     var uiState = MutableStateFlow(LoginState.PHONE)
-    var appErrors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
+    var errors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
 
     fun validateAndSubmitPhone(loginType: LoginType) {
-        appErrors.value = mapOf()
-        if (phone.value.length < 10) appErrors.value = mapOf("phone" to "Invalid phone number.")
-        if (username.value.length < 8) appErrors.value = mapOf("username" to "Invalid username.")
-        if (!tos.value) appErrors.value = mapOf("tos" to "Please accept the terms of service before continuing")
-        if (appErrors.value.isNotEmpty()) return
+        errors.value = mapOf()
+        if (phone.value.length < 10) errors.value = mapOf("phone" to "Invalid phone number.")
+        if (loginType == LoginType.MEMBER && username.value.length < 8) errors.value = mapOf("username" to "Invalid username.")
+        if (!tos.value) errors.value = mapOf("tos" to "Please accept the terms of service before continuing")
+        if (errors.value.isNotEmpty()) return
         viewModelScope.launch {
             isLoading.value = true
             try {
-                with (api.login(LoginDTO(phone.value))) {
-                    println(this)
-                    if (errors.isNullOrEmpty()) uiState.value = LoginState.OTP
-                    else appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+                with (api.login(LoginDTO(phone.value, username.value))) {
+                    if (!error) uiState.value = LoginState.OTP
+                    else errors.value = mapOf("phone" to "Something went wrong. Please try again.")
                 }
             } catch (e: Exception) {
                 Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+                errors.value = mapOf("phone" to "Something went wrong. Please try again.")
             }
             isLoading.value = false
         }
@@ -80,24 +79,24 @@ class LoginViewModel(
             try {
                 with(api.verifyOTP(OTPLoginDTO(phone.value, otp.value))) {
                     if (status.isSuccess()) {
-                        body<ApiResponse<User>>().let { response ->
-                            if (response.errors.isNullOrEmpty()) {
+                        body<ApiResponse<Member>>().let { reponse ->
+                            if (!reponse.error) {
                                 headers["X-Access-Token"]?.let {
                                     sharedPreferences.edit().putString("authToken", it).apply()
                                     Log.d("TOKEN", it)
                                 }
                                 isLoggedIn.value = true
-                                hasUserDetails = body<ApiResponse<User>>().data!!.firstName != null
+                                hasUserDetails = body<ApiResponse<Member>>().data!!.firstName != null
                             } else {
-                                appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
+                                errors.value = mapOf("otp" to "Invalid OTP. Please try again.")
                             }
                         }
-                    } else appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
+                    } else errors.value = mapOf("otp" to "Invalid OTP. Please try again.")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("otp" to "Something went wrong. Please try again.")
+                errors.value = mapOf("otp" to "Something went wrong. Please try again.")
             }
             isLoading.value = false
         }
