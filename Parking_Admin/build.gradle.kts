@@ -2,8 +2,6 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("plugin.serialization")
-    // Kapt
-//    kotlin("kapt")
 }
 
 android {
@@ -78,7 +76,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
 
     // For developers using AndroidX in their applications
-    implementation("pub.devrel:easypermissions:3.0.0")
+//    implementation("pub.devrel:easypermissions:3.0.0")
     implementation("com.vmadalin:easypermissions-ktx:1.0.0")
 
     // Compose LiveData
@@ -110,4 +108,7 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:$lottieVersion")
 
     implementation("io.coil-kt:coil-compose:2.3.0")
+
+    // Zoomable
+    implementation("net.engawapg.lib:zoomable:1.4.2")
 }

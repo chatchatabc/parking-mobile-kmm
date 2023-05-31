@@ -50,9 +50,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.chatchatabc.parkingadmin.android.theme.AppTheme
-import com.chatchatabc.parkingadmin.di.MainModule
-import com.chatchatabc.parkingadmin.viewModel.MainViewModel
+import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.di.MainModule
+import com.chatchatabc.parking.model.ParkingLot
+import com.chatchatabc.parking.viewModel.MainViewModel
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
@@ -61,17 +62,28 @@ class MainActivity: ComponentActivity() {
 
     val viewModel: MainViewModel by inject()
 
+    override fun onResume() {
+        super.onResume()
+
+        viewModel.parkingLot.value.let { parkingLot ->
+            if (parkingLot == null) {
+                viewModel.getParkingLot()
+            } else if (parkingLot.status != ParkingLot.VERIFIED) {
+                viewModel.getParkingLot()
+            }
+        }
+
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        viewModel.getParkingLots()
 
         setContent {
             AppTheme {
                 val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
-                val parkingLots by viewModel.parkingLots.collectAsState()
+                val parkingLot by viewModel.parkingLot.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 
                 Scaffold(
@@ -110,43 +122,77 @@ class MainActivity: ComponentActivity() {
                     ) {
                         // TODO: Add logic for Dashboard View vs New Parking Lot Prompt
                         if (!isLoading) {
-                            if (parkingLots.isEmpty() || parkingLots.any { it.draft }) {
-                                Box(modifier = Modifier
-                                    .padding(32.dp)
-                                    .fillMaxWidth()
-                                    .height(150.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(
-                                            alpha = 0.1f
-                                        )
-                                    ),
-                                    contentAlignment = Alignment.Center
+                            Box(modifier = Modifier
+                                .padding(32.dp)
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                        alpha = 0.1f
+                                    )
+                                ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
+                                    if (parkingLot == null) {
                                         Text(
-                                            if (parkingLots.isEmpty()) "You have no parking lots set up" else "You have a parking lot in draft",
+                                            "You have no parking lots set up",
                                             style = MaterialTheme.typography.bodyMedium
                                         )
-                                        Button(onClick = {
-                                            startActivity(
-                                                Intent(this@MainActivity, NewParkingLotActivity::class.java).apply {
-                                                    parkingLots.firstOrNull { it.draft }?.let {
-                                                        this.putExtra("parkingLot", it.id)
-                                                    }
+                                        Button(
+                                            onClick = {
+                                                startActivity(
+                                                    Intent(
+                                                        this@MainActivity,
+                                                        NewParkingLotActivity::class.java
+                                                    )
+                                                )
+                                            },
+                                            colors = ButtonDefaults.elevatedButtonColors()
+                                        ) {
+                                            Text("Create a new parking lot")
+                                        }
+                                    }
+                                    else {
+                                        when (parkingLot!!.status) {
+                                            ParkingLot.DRAFT -> {
+                                                Text(
+                                                    "You have a parking lot in draft",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                Button(onClick = {
+                                                    startActivity(
+                                                        Intent(this@MainActivity, NewParkingLotActivity::class.java).apply {
+                                                            parkingLot?.let {
+                                                                this.putExtra("parkingLot", it.parkingLotUuid)
+                                                            }
+                                                        }
+                                                    )
+                                                }, colors = ButtonDefaults.elevatedButtonColors()) {
+                                                    Text("Continue editing")
                                                 }
-                                            )
-                                        }, colors = ButtonDefaults.elevatedButtonColors()) {
-                                            Text(if (parkingLots.isEmpty()) "Create a new parking lot" else "Continue editing")
+                                            }
+                                            ParkingLot.PENDING_VERIFICATION -> {
+                                                Text(
+                                                    "Your parking lot is pending verification",
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                                Text(
+                                                    "Check back later for updates",
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
+                            DashboardView()
                         }
                     }
                 }
@@ -158,7 +204,6 @@ class MainActivity: ComponentActivity() {
 @Preview
 @Composable
 fun DashboardView() {
-    Text("SM Parking Lot", Modifier.padding(start=32.dp), style = MaterialTheme.typography.titleLarge)
     // TODO: Use better colors. This does not look good at the moment.
     // TODO: Connect to actual data source.
     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(16.dp)) {
@@ -299,7 +344,7 @@ fun DashboardView() {
                         }
                     }
                     Text(
-                        "₱2,641", style = MaterialTheme.typography.displaySmall.copy(
+                        "₱2.5k", style = MaterialTheme.typography.displaySmall.copy(
                             platformStyle = PlatformTextStyle(
                                 includeFontPadding = false
                             ),

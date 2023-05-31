@@ -33,10 +33,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.chatchatabc.parkingadmin.android.theme.AppTheme
-import com.chatchatabc.parkingadmin.di.NewUserModule
-import com.chatchatabc.parkingadmin.viewModel.NewUserState
-import com.chatchatabc.parkingadmin.viewModel.NewUserViewModel
+import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.di.NewUserModule
+import com.chatchatabc.parking.viewModel.NewUserState
+import com.chatchatabc.parking.viewModel.NewUserViewModel
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 class NewUserActivity: ComponentActivity() {
@@ -70,6 +70,8 @@ fun NewUserView(viewModel: NewUserViewModel, onContinue: () -> Unit = {}) {
     val lastName by viewModel.lastName.collectAsState("")
     val email by viewModel.email.collectAsState("")
 
+
+    // TODO:
     val isLoading by viewModel.isLoading.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 

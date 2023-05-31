@@ -3,6 +3,7 @@ plugins {
     kotlin("native.cocoapods")
     id("com.android.library")
     kotlin("plugin.serialization")
+    id("io.realm.kotlin")
 }
 
 val version = "3.2.0"
@@ -38,8 +39,6 @@ kotlin {
         val ktorVersion = "2.3.0"
 
         val commonMain by getting {
-            val serializationVersion = "0.20.0-1.4-M2"
-
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
@@ -54,6 +53,9 @@ kotlin {
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+
+                // Realm
+                implementation("io.realm.kotlin:library-base:1.8.0")
             }
         }
         val commonTest by getting {
@@ -67,9 +69,27 @@ kotlin {
                 implementation("io.insert-koin:koin-android:$koin_version")
 
                 implementation("androidx.security:security-crypto:1.0.0")
+
+                // Form Builder
+                implementation("com.github.jkuatdsc:form-builder:1.0.6")
+
+                implementation("androidx.compose.ui:ui:1.4.1")
+                implementation("androidx.compose.ui:ui-tooling:1.4.1")
+                implementation("androidx.compose.foundation:foundation:1.4.1")
+                implementation("androidx.compose.foundation:foundation-layout:1.4.1")
+                implementation("androidx.compose.material:material:1.4.1")
+                implementation("androidx.compose.material3:material3:1.1.0-beta02")
+
+                implementation("com.google.android.gms:play-services-location:21.0.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
+
+                implementation("com.google.android.gms:play-services-maps:18.1.0")
+
+                // https://mvnrepository.com/artifact/io.realm/realm-android-kotlin-extensions
+                implementation("io.realm:realm-android-kotlin-extensions:10.15.1")
             }
         }
-        val androidUnitTest by getting
+//        val androidUnitTest by getting
         val iosX64Main by getting
         val iosArm64Main by getting
         val iosSimulatorArm64Main by getting
@@ -99,5 +119,13 @@ android {
     compileSdk = 33
     defaultConfig {
         minSdk = 24
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.4.4"
     }
 }

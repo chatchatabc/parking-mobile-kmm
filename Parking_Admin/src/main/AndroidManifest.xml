@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.CAMERA"/>
 
+    <!-- FIXME: android:usesCleartextTraffic must be FALSE for PRODUCTION -->
     <application
         android:allowBackup="false"
         android:supportsRtl="false"
@@ -18,6 +19,7 @@
         android:name=".ParkingAdminApplication"
         android:label="ParkParkABC"
         android:usesCleartextTraffic="true"
+        android:windowSoftInputMode="adjustPan"
         >
 
         <meta-data android:name="com.google.android.geo.API_KEY"

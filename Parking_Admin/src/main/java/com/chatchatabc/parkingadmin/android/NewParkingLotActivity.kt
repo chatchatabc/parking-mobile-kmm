@@ -37,8 +37,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteForever
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,6 +49,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +59,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -70,26 +74,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.FileProvider
-import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.ImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.chatchatabc.parkingadmin.android.core.activity.LocationActivity
-import com.chatchatabc.parkingadmin.android.theme.AppTheme
-import com.chatchatabc.parkingadmin.di.NewParkingLotModule
-import com.chatchatabc.parkingadmin.viewModel.ImageUpload
-import com.chatchatabc.parkingadmin.viewModel.ImageUploadState
-import com.chatchatabc.parkingadmin.viewModel.NewParkingLotViewModel
+import com.chatchatabc.parking.activity.LocationActivity
+import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.di.NewParkingLotModule
+import com.chatchatabc.parking.viewModel.ImageUpload
+import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -98,35 +105,22 @@ import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.vmadalin.easypermissions.EasyPermissions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.engawapg.lib.zoomable.rememberZoomState
+import net.engawapg.lib.zoomable.zoomable
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
-import pub.devrel.easypermissions.EasyPermissions
 import java.io.File
 
 class NewParkingLotActivity : LocationActivity() {
     val koinModule = loadKoinModules(NewParkingLotModule)
 
-    val viewModel: NewParkingLotViewModel by inject()
+    private val viewModel: NewParkingLotViewModel by inject()
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (
-            requestCode == "REQUEST_CAMERA_PERMISSION".hashCode() &&
-            permissions.contains(android.Manifest.permission.CAMERA) &&
-            grantResults.contains(0)
-        ) {
-            onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
-        }
-    }
-
-    private lateinit var imageUri: Uri
+    lateinit var imageUri: Uri
 
     val onCameraPermissionGranted = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
@@ -148,25 +142,40 @@ class NewParkingLotActivity : LocationActivity() {
 
     val onImageCaptured = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         if (success) {
-            viewModel.images.value = viewModel.images.value.plus(
-                ImageUpload(
-                    ImageUploadState.QUEUED,
-                    imageUri
-                )
-            )
+            viewModel.addToUploadQueue(imageUri)
         }
     }
 
     val onImageSelected = registerForActivityResult(ActivityResultContracts.GetContent()) {
         it?.let { uri ->
-            viewModel.images.value = viewModel.images.value.plus(
-                ImageUpload(
-                    ImageUploadState.QUEUED,
-                    uri
-                )
-            )
+            Log.d("URI", "uri: $uri")
+            viewModel.addToUploadQueue(uri)
         }
     }
+
+    val requestCameraPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (!EasyPermissions.hasPermissions(this, android.Manifest.permission.CAMERA)) {
+            EasyPermissions.requestPermissions(
+                this,
+                "Camera permission is required to take photos",
+                200,
+                android.Manifest.permission.CAMERA
+            )
+        } else {
+            onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
+        }
+    }
+
 
     @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -395,16 +404,17 @@ class NewParkingLotActivity : LocationActivity() {
                                         ) {
                                             Text("Add a photo of your parking lot", style = MaterialTheme.typography.titleMedium)
                                             Text("You'll need to add minimum of 1, with a maximum of 6. You will be able to set this later.", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
-                                            UploadPhotoButton(onCameraClick = {
-                                                if (EasyPermissions.hasPermissions(this@NewParkingLotActivity, android.Manifest.permission.CAMERA)) {
-                                                    onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
-                                                } else {
-                                                    EasyPermissions.requestPermissions(this@NewParkingLotActivity, "This app needs access to your camera", "REQUEST_CAMERA_PERMISSION".hashCode(), android.Manifest.permission.CAMERA)
+                                            UploadPhotoButton(
+                                                onCameraClick = {
+                                                    if (EasyPermissions.hasPermissions(this@NewParkingLotActivity, android.Manifest.permission.CAMERA)) {
+                                                        onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
+                                                    } else {
+                                                        EasyPermissions.requestPermissions(this@NewParkingLotActivity, "This app needs access to your camera", 200, android.Manifest.permission.CAMERA)
+                                                    }
+                                                }, onUploadClick = {
+                                                    onImageSelected.launch("image/*")
                                                 }
-
-                                            }){
-                                                onImageSelected.launch("image/*")
-                                            }
+                                            )
                                         }
 
                                     }
@@ -814,8 +824,9 @@ fun GoogleMapsLocationPicker(
     }
 }
 
+@Preview
 @Composable
-fun UploadPhotoButton(onCameraClick: () -> Unit, onUploadClick: () -> Unit) {
+fun UploadPhotoButton(onCameraClick: () -> Unit = {}, onUploadClick: () -> Unit = {}) {
     Box(modifier = Modifier
         .aspectRatio(32 / 9f)
         .fillMaxWidth()
@@ -848,10 +859,6 @@ fun UploadPhotoButton(onCameraClick: () -> Unit, onUploadClick: () -> Unit) {
                 }
             }
         }
-//        Row(Modifier.align(Alignment.Center), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-//            Icon(Icons.Filled.AddPhotoAlternate, contentDescription = "Upload a photo", Modifier.size(24.dp))
-//            Text("Upload a photo")
-//        }
     }
 }
 
@@ -860,9 +867,115 @@ fun UploadPhotoButton(onCameraClick: () -> Unit, onUploadClick: () -> Unit) {
 fun ImageItem(
     image: ImageUpload,
     onDelete: () -> Unit = {},
-    onClick: () -> Unit = {}
 ) {
     var isMaximized by remember { mutableStateOf(false) }
+    var confirmDeleteDialogOpened by remember { mutableStateOf(false) }
+
+    if (isMaximized) {
+        AlertDialog(
+            onDismissRequest = { isMaximized = false},
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = true,
+            )
+        ) {
+            Box(modifier = Modifier
+                .fillMaxSize()
+            ) {
+                val image = rememberAsyncImagePainter(model = image.remoteUrl!!)
+
+                when (image.state) {
+                    is AsyncImagePainter.State.Error -> {
+                        Box(
+                            Modifier
+                                .padding(32.dp)
+                                .align(Alignment.Center)) {
+                            Card(colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer,
+                                contentColor = MaterialTheme.colorScheme.onErrorContainer
+                            )) {
+                                Column(Modifier.padding(16.dp)) {
+                                    Icon(Icons.Filled.Error, contentDescription = "Error loading image", tint = MaterialTheme.colorScheme.onErrorContainer)
+                                    Text("Error loading image", style = MaterialTheme.typography.bodyMedium)
+                                    Text("An error occurred while loading the image. Please try again later.")
+                                    Button(onClick = {
+                                        isMaximized = false
+                                    }) {
+                                        Text("Close")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is AsyncImagePainter.State.Success -> {
+                        Image(
+                            painter = image,
+                            contentDescription = null,
+                            alignment = Alignment.Center,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .zoomable(rememberZoomState(), false)
+                                .fillMaxSize()
+                        )
+                    }
+                    is AsyncImagePainter.State.Loading -> {
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    }
+                    is AsyncImagePainter.State.Empty -> {
+                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+                    }
+                }
+
+                Row(modifier = Modifier.align(Alignment.TopEnd)) {
+                    FilledTonalIconButton(
+                        modifier = Modifier.padding(32.dp),
+                        onClick = { isMaximized = false }
+                    ) {
+                        Icon(Icons.Filled.Close, contentDescription = "Close", Modifier.size(24.dp))
+                    }
+
+                    FilledIconButton(
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        modifier = Modifier.padding(32.dp),
+                        onClick = { confirmDeleteDialogOpened = true }
+                    ) {
+                        Icon(Icons.Filled.Delete, contentDescription = "Delete", Modifier.size(24.dp))
+                    }
+                }
+            }
+        }
+    }
+
+    if (confirmDeleteDialogOpened) {
+        AlertDialog(onDismissRequest = {
+            confirmDeleteDialogOpened = false
+        }) {
+            Dialog(onDismissRequest = { confirmDeleteDialogOpened = false}) {
+                Column {
+                    Text("Are you sure you want to delete this photo?")
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = {
+                            confirmDeleteDialogOpened = false
+                        }) {
+                            Text("Cancel")
+                        }
+                        TextButton(onClick = {
+                            confirmDeleteDialogOpened = false
+                            isMaximized = false
+                            onDelete()
+                        }) {
+                            Text("Delete")
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Box(modifier = Modifier
         .aspectRatio(16 / 9f)
@@ -870,39 +983,55 @@ fun ImageItem(
         .clip(MaterialTheme.shapes.medium)
         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium)
         .clickable {
-            isMaximized = true
+            image.remoteUrl?.let {
+                isMaximized = true
+            }
         }
     ) {
-        CircularProgressIndicator(Modifier.align(Alignment.Center))
-        if (image.response != null || (image.fileUri != null && image.status == ImageUploadState.RESTORED)) {
-            AsyncImage(
-                model = if (image.status == ImageUploadState.RESTORED) image.fileUri!! else image.response!!,
-                contentDescription = null,
-                alignment = Alignment.Center,
-                contentScale = ContentScale.FillWidth
-            )
-        }
-
-        FilledIconButton(onClick = { onDelete() }, modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(8.dp)) {
-            Icon(Icons.Filled.DeleteForever, contentDescription = "Delete", Modifier.size(24.dp))
-        }
-
-        if (isMaximized) {
-            AlertDialog(
-                onDismissRequest = { isMaximized = false },
-            ) {
-                Box(modifier = Modifier
-                    .clickable {
-                        isMaximized = false
+        image.remoteUrl?.let {
+            val image = rememberAsyncImagePainter(model = it)
+            when (image.state) {
+                is AsyncImagePainter.State.Error -> {
+                    Box(
+                        Modifier
+                            .padding(32.dp)
+                            .align(Alignment.Center)) {
+                        Card(colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )) {
+                            Column(Modifier.padding(16.dp)) {
+                                Icon(Icons.Filled.Error, contentDescription = "Error loading image", tint = MaterialTheme.colorScheme.onErrorContainer)
+                                Text("Error loading image", style = MaterialTheme.typography.bodyMedium)
+                                Text("An error occurred while loading the image. Please try again later.")
+                                Button(onClick = {
+                                    isMaximized = false
+                                }) {
+                                    Text("Close")
+                                }
+                            }
+                        }
                     }
-                ) {
-                    AsyncImage(
-                        model = image.fileUri,
+                }
+                is AsyncImagePainter.State.Success -> {
+                    Image(
+                        painter = image,
                         contentDescription = null,
-                        alignment = Alignment.Center
+                        alignment = Alignment.Center,
+                        contentScale = ContentScale.FillWidth
                     )
+
+                    FilledIconButton(onClick = { onDelete() }, modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)) {
+                        Icon(Icons.Filled.DeleteForever, contentDescription = "Delete", Modifier.size(24.dp))
+                    }
+                }
+                is AsyncImagePainter.State.Loading -> {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
+                }
+                is AsyncImagePainter.State.Empty -> {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
             }
         }
