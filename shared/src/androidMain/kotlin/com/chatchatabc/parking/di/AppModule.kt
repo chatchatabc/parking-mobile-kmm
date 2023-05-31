@@ -97,17 +97,17 @@ val ParkingRealmModule = module {
 }
 
 val MainMapModule = module {
-    includes(TokenModule)
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMainViewModel(get(), get(named("parkingRealm")))
+        ClientMainViewModel(get(), get(named("parkingRealm")), get())
     }
 }
 
 val NewVehicleModule = module {
-    includes(TokenModule)
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMainViewModel(get(), get(named("parkingRealm")))
+        ClientMainViewModel(get(), get(named("parkingRealm")), get())
     }
 }
