@@ -8,7 +8,7 @@ import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.httpClient
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
-import com.chatchatabc.parking.viewModel.ClientMapViewModel
+import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parking.viewModel.LoginViewModel
 import com.chatchatabc.parking.viewModel.MainViewModel
 import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
@@ -23,9 +23,29 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-// TODO: Properly scope and name the modules
+val TokenModule = module {
+    factory(named("token")) {
+        get<SharedPreferences>().getString("authToken", null)
+    }
+}
+
+val EncryptedSharedPreferencesModule = module {
+    factory(named("masterKey")) {
+        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+    }
+    single {
+        EncryptedSharedPreferences.create(
+            "ParkingAdminPreferences",
+            get(named("masterKey")),
+            get(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+}
 
 val AppModule = module {
+    includes(EncryptedSharedPreferencesModule)
     single { httpClient {
         // Allow incomplete JSON values
         install(ContentNegotiation) {
@@ -38,18 +58,6 @@ val AppModule = module {
             println(it.bodyAsText())
         }
     } }
-    single(named("masterKey")) {
-        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-    }
-    single {
-        EncryptedSharedPreferences.create(
-            "ParkingAdminPreferences",
-            get(named("masterKey")),
-            get(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
 }
 
 val LoginModule = module {
@@ -58,41 +66,22 @@ val LoginModule = module {
 }
 
 val NewUserModule = module {
-    factory(named("masterKey")) {
-        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
-    }
-    factory(named("token")) {
-        get<SharedPreferences>().getString("authToken", null)
-    }
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single {
         UserAPI(get(), get(named("token")))
     }
-    single {
-        EncryptedSharedPreferences.create(
-            "ParkingAdminPreferences",
-            get(named("masterKey")),
-            get(),
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+
     viewModel { NewUserViewModel(get(), get()) }
 }
 
-typealias Token = String
-
 val NewParkingLotModule = module {
-    factory(named("token")) {
-        get<SharedPreferences>().getString("authToken", null)
-    }
+    includes(TokenModule)
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel { NewParkingLotViewModel(get(), get()) }
 }
 
 val MainModule = module {
-    factory(named("token")) {
-        get<SharedPreferences>().getString("authToken", null)
-    }
+    includes(TokenModule)
     single { ParkingAPI(get(), get(named("token"))) }
     single { UserAPI(get(), get(named("token"))) }
     viewModel {
@@ -108,11 +97,17 @@ val ParkingRealmModule = module {
 }
 
 val MainMapModule = module {
-    factory(named("token")) {
-        get<SharedPreferences>().getString("authToken", null)
-    }
+    includes(TokenModule)
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMapViewModel(get(), get(named("parkingRealm")))
+        ClientMainViewModel(get(), get(named("parkingRealm")))
+    }
+}
+
+val NewVehicleModule = module {
+    includes(TokenModule)
+    single { ParkingAPI(get(), get(named("token"))) }
+    viewModel {
+        ClientMainViewModel(get(), get(named("parkingRealm")))
     }
 }
