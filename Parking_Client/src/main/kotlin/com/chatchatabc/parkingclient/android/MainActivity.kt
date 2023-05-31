@@ -1,6 +1,7 @@
 package com.chatchatabc.parkingclient.android
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -30,12 +31,14 @@ import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -129,13 +132,6 @@ class MainActivity : LocationActivity() {
                            hasPermission = true
                         }
 
-                        FloatingActionButton(onClick = {
-
-                        }) {
-                            Icon(Icons.Filled.QrCode, "Show Parking QR Code")
-                        }
-
-
                         if (hasPermission) {
                             MapView(
                                 pins = visibleParkingLots,
@@ -148,6 +144,35 @@ class MainActivity : LocationActivity() {
                             }
                         }
 
+                        val vehicleSelectorShown = viewModel.isSelectingVehicle.collectAsState()
+
+                        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                            FloatingActionButton(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(32.dp),
+                                onClick = {
+                                    viewModel.openVehicleSelector()
+                                }
+                            ) {
+                                Icon(Icons.Filled.QrCode, "Show Parking QR Code")
+                            }
+                        }
+
+                        SelectVehicleSheet(
+                            vehicles = listOf(),
+                            isShown = vehicleSelectorShown.value,
+                            onStateChanged = {
+                                viewModel.isSelectingVehicle.value = it
+                            },
+                            onAddVehicleClicked = {
+                                Intent(this@MainActivity, NewVehicleActivity::class.java).also {
+                                    startActivity(it)
+                                }
+                            }
+                        ) {
+                            /*TODO*/
+                        }
                     }
                 }
             }
@@ -310,10 +335,12 @@ private fun createCustomMarkerBitmap(name: String, subtext: String, context: Con
     return outputBitmap
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SelectVehicleSheet(
     vehicles: List<Vehicle>,
+    isShown: Boolean,
+    onStateChanged: (Boolean) -> Unit,
     onAddVehicleClicked: () -> Unit,
     onVehicleSelected: (Vehicle) -> Unit,
 
@@ -324,6 +351,18 @@ fun SelectVehicleSheet(
         confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded },
         skipHalfExpanded = false
     )
+
+    LaunchedEffect(modalSheetState.isVisible) {
+        onStateChanged(modalSheetState.isVisible)
+    }
+
+    LaunchedEffect(isShown) {
+        if (isShown) {
+            modalSheetState.show()
+        } else {
+            modalSheetState.hide()
+        }
+    }
 
     var isSheetFullScreen by remember { mutableStateOf(false) }
     val modifier = if (isSheetFullScreen)
@@ -341,8 +380,8 @@ fun SelectVehicleSheet(
         sheetShape = MaterialTheme.shapes.large,
         sheetContent = {
             Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center,
             ) {
                 Text("Select Vehicle", style = MaterialTheme.typography.titleLarge)
@@ -352,6 +391,19 @@ fun SelectVehicleSheet(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
+                    item {
+                        Card(modifier = Modifier.fillMaxWidth(), onClick = {onAddVehicleClicked()}) {
+                            Row(Modifier.padding(8.dp)) {
+                                Text("Add Vehicle")
+                                Icon(
+                                    Icons.Filled.DirectionsCar,
+                                    contentDescription = "Add Vehicle",
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+                    }
                     items(vehicles, key = { item -> item.vehicleUuid }) {vehicle ->
                         VehicleItem(vehicle = vehicle) {
                             onVehicleSelected(vehicle)
