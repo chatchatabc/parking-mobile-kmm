@@ -45,7 +45,6 @@ val EncryptedSharedPreferencesModule = module {
 }
 
 val AppModule = module {
-    includes(EncryptedSharedPreferencesModule)
     single { httpClient {
         // Allow incomplete JSON values
         install(ContentNegotiation) {
@@ -81,11 +80,11 @@ val NewParkingLotModule = module {
 }
 
 val MainModule = module {
-    includes(TokenModule)
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     single { UserAPI(get(), get(named("token"))) }
     viewModel {
-        MainViewModel(get(), get())
+        MainViewModel(get(), get(), get())
     }
 }
 
