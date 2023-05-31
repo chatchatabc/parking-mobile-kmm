@@ -69,20 +69,20 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
                                 progress.value = it
                             }
                         }.let {
-                            if (!it.error) {
+                            if (it.errors.isNullOrEmpty()) {
                                 images.value = images.value.toMutableList().apply {
                                     progress.value = 0
-                                    if (!it.error) {
+                                    if (it.errors.isNullOrEmpty()) {
                                         it.data?.let {data ->
                                             set(indexOf(pendingUpload), pendingUpload.copy(status = ImageUploadState.UPLOADED, remoteUrl = api.getImage(data.id)))
                                         }
                                     } else {
-                                        println("Error uploading image: ${it.message}")
+                                        println("Error uploading image")
                                         set(indexOf(pendingUpload), pendingUpload.copy(status = ImageUploadState.ERROR))
                                     }
                                 }
                             } else {
-                                Log.d("UPLOAD", "Error uploading image: ${it.message}")
+                                Log.d("UPLOAD", "Error uploading image")
                                 images.value = images.value.toMutableList().apply {
                                     set(indexOf(pendingUpload), pendingUpload.copy(status = ImageUploadState.ERROR))
                                 }
@@ -130,7 +130,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     private fun restoreDraft() {
         viewModelScope.launch {
             api.getParkingLot().let {
-                if (!it.error) {
+                if (it.errors.isNullOrEmpty()) {
                     it.data?.let { parkingLot ->
                         parkingLotName.value = parkingLot.name ?: ""
                         parkingLotAddress.value = parkingLot.address ?: ""
@@ -145,7 +145,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
                             } ?: Pair(1, 0)
                         daysOpen.value = parkingLot.openDaysFlag?.getFlags() ?: listOf()
                         api.getImages(parkingLot.parkingLotUuid).let {
-                            if (!it.error) {
+                            if (!it.errors.isNullOrEmpty()) {
                                 images.value = it.data?.content?.map { image ->
                                     ImageUpload(
                                         status = ImageUploadState.UPLOADED,
@@ -167,7 +167,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
         viewModelScope.launch {
             if (uuid.value.isBlank()) {
                 api.createDraft(createDTO()).let {
-                    if (!it.error) {
+                    if (!it.errors.isNullOrEmpty()) {
                         uuid.value = it.data!!.parkingLotUuid
                     }
                 }
@@ -180,7 +180,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     fun setToPending() {
         viewModelScope.launch {
             val result = api.setToPending()
-            if (!result.error) {
+            if (!result.errors.isNullOrEmpty()) {
                 currentPage.value = 3
             }
         }
