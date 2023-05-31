@@ -73,7 +73,7 @@ class LoginViewModel(
         }
     }
 
-    fun validateAndSumbitOTP() {
+    fun validateAndSubmitOTP() {
         viewModelScope.launch {
             isLoading.value = true
             try {
