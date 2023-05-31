@@ -156,7 +156,7 @@ class LoginActivity : ComponentActivity() {
                                             viewModel.validateAndSubmitPhone(LoginType.ADMIN)
                                         },
                                         onOTPConfirm = {
-                                            viewModel.validateAndSumbitOTP()
+                                            viewModel.validateAndSubmitOTP()
                                         }
                                     )
                                 }

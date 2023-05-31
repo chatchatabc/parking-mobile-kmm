@@ -151,7 +151,7 @@ class LoginActivity: ComponentActivity() {
                                             viewModel.errors.value = viewModel.errors.value.filter { it.key != "otp" }
                                         }
                                     ) {
-                                        viewModel.validateAndSumbitOTP()
+                                        viewModel.validateAndSubmitOTP()
                                     }
                                 }
                             }
