@@ -23,10 +23,12 @@ class MainViewModel(
         println("Checking parking lots")
         viewModelScope.launch {
             parkingAPI.getParkingLot().let {
-                if (!it.error) {
+                if (it.errors.isNullOrEmpty()) {
                     parkingLot.value = it.data
                 } else {
-                    println("Error: ${it.message}")
+                    it.errors?.forEach { error ->
+                        println("Error: ${error.message}")
+                    }
                 }
             }
         }
