@@ -56,8 +56,8 @@ class LoginViewModel(
         errors.value = mapOf()
         if (phone.value.length < 10) errors.value = mapOf("phone" to "Invalid phone number.")
         if (loginType == LoginType.MEMBER && username.value.length < 8) errors.value = mapOf("username" to "Invalid username.")
+        if (!tos.value) errors.value = mapOf("tos" to "Please accept the terms of service before continuing")
         if (errors.value.isNotEmpty()) return
-
         viewModelScope.launch {
             isLoading.value = true
             try {
