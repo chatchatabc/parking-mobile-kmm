@@ -4,6 +4,7 @@ import com.chatchatabc.parking.Config
 import com.chatchatabc.parking.Config.BASE_URL
 import com.chatchatabc.parking.model.pagination.Pagination
 import com.chatchatabc.parking.model.response.ApiResponse
+import com.chatchatabc.parking.model.response.ErrorElement
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.onUpload
@@ -102,9 +103,8 @@ abstract class AbstractAPI(val httpClient: HttpClient, private val token: String
 
     fun <T> defaultUnknownError(message: String? = null): ApiResponse<T> {
         return ApiResponse(
-            error = true,
-            message = message ?: "Something went wrong. Please try again.",
-            code = 500
+            data = null,
+            errors = listOf(ErrorElement("ERROR", "Something went wrong. Please try again.")),
         )
     }
 }
