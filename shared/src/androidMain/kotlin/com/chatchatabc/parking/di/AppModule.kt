@@ -60,6 +60,7 @@ val AppModule = module {
 }
 
 val LoginModule = module {
+    includes(EncryptedSharedPreferencesModule)
     single { LoginAPI(get()) }
     viewModel { LoginViewModel(get(), get()) }
 }
