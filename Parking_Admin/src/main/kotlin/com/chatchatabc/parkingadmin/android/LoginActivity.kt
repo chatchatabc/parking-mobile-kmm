@@ -79,6 +79,7 @@ class LoginActivity : ComponentActivity() {
                         Card(Modifier.align(Alignment.Center)) {
                             when (loginState) {
                                 LoginState.PHONE -> LoginView(
+                                    loginTitle = "Parking Owner Login",
                                     errors = errors,
                                     phone = phone,
                                     tos = tos,

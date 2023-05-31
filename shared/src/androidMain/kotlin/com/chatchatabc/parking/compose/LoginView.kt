@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LoginView(
     modifier: Modifier = Modifier,
+    loginTitle: String = "ParkingUser Login",
     errors: Map<String, String>,
     phone: String,
     tos: Boolean,
@@ -33,7 +34,7 @@ fun LoginView(
     onLogin: () -> Unit,
 ) {
     Column(modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Login",
+        Text(loginTitle,
             modifier = Modifier
                 .fillMaxWidth(),
             style = MaterialTheme.typography.titleLarge
