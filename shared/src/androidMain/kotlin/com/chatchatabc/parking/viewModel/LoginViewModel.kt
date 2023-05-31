@@ -61,7 +61,7 @@ class LoginViewModel(
         viewModelScope.launch {
             isLoading.value = true
             try {
-                with (api.login(LoginDTO(phone.value))) {
+                with (api.login(LoginDTO(phone.value, username.value))) {
                     if (!error) uiState.value = LoginState.OTP
                     else errors.value = mapOf("phone" to "Something went wrong. Please try again.")
                 }
