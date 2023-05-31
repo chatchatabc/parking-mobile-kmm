@@ -41,22 +41,24 @@ fun LoginView(
             style = MaterialTheme.typography.titleLarge
         )
 
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = username ?: "",
-            onValueChange = { onUsernameChanged(it) },
-            label = { Text("Username") },
-            isError = errors.containsKey("username"),
-            supportingText = {
-                errors["username"]?.let {
-                    Text(
-                        it,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
+        if (username != null) {
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = username,
+                onValueChange = { onUsernameChanged(it) },
+                label = { Text("Username") },
+                isError = errors.containsKey("username"),
+                supportingText = {
+                    errors["username"]?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
-            }
-        )
+            )
+        }
 
         // TODO: Add validation for number
         OutlinedTextField(

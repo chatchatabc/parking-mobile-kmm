@@ -58,7 +58,6 @@ class LoginActivity : ComponentActivity() {
         setContent {
             val loginState by viewModel.uiState.collectAsState()
             val success by viewModel.isLoggedIn.collectAsState()
-
             val errors by viewModel.errors.collectAsState()
 
             LaunchedEffect(success) {
@@ -79,6 +78,7 @@ class LoginActivity : ComponentActivity() {
                 ) {
                     val otp by viewModel.otp.collectAsState()
                     val phone by viewModel.phone.collectAsState()
+                    val username by viewModel.username.collectAsState()
                     val tos by viewModel.tos.collectAsState()
                     val timer by viewModel.timer.collectAsState()
 
@@ -113,6 +113,7 @@ class LoginActivity : ComponentActivity() {
                                         errors = errors,
                                         phone = phone,
                                         tos = tos,
+                                        username = username,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(32.dp),
@@ -120,6 +121,10 @@ class LoginActivity : ComponentActivity() {
                                             viewModel.phone.value = it
                                             viewModel.errors.value =
                                                 viewModel.errors.value.filter { it.key != "phone" }
+                                        },
+                                        onUsernameChanged = {
+                                            viewModel.username.value = it
+                                            viewModel.errors.value = viewModel.errors.value.filter { it.key != "username" }
                                         },
                                         onTosChanged = {
                                             viewModel.tos.value = it
