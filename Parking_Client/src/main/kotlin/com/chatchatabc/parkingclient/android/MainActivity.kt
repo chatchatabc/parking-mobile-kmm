@@ -10,19 +10,35 @@ import android.graphics.Typeface
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.MaterialTheme
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material3.Card
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -34,16 +50,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
+import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
-import com.chatchatabc.parking.viewModel.ClientMapViewModel
+import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -66,7 +86,7 @@ import java.lang.Integer.max
 
 class MainActivity : LocationActivity() {
     val koinModule = loadKoinModules(listOf(ParkingRealmModule, MainMapModule))
-    val viewModel: ClientMapViewModel by inject()
+    val viewModel: ClientMainViewModel by inject()
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,7 +96,7 @@ class MainActivity : LocationActivity() {
             AppTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                    color = MaterialTheme.colorScheme.background
                 ) {
                     val visibleParkingLots by viewModel.visibleParkingLots.collectAsState(listOf())
 
@@ -108,6 +128,13 @@ class MainActivity : LocationActivity() {
                         withLocationPermission {
                            hasPermission = true
                         }
+
+                        FloatingActionButton(onClick = {
+
+                        }) {
+                            Icon(Icons.Filled.QrCode, "Show Parking QR Code")
+                        }
+
 
                         if (hasPermission) {
                             MapView(
@@ -190,7 +217,7 @@ fun MarkerContainer(
 ) {
     val context = LocalContext.current
 
-    val primaryColor = MaterialTheme.colors.primary
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     pins.forEach { pin ->
         val marker = rememberMarkerState(pin.id, LatLng(pin.latitude!!, pin.longitude!!))
@@ -208,7 +235,7 @@ fun MarkerContainer(
 
         Marker(state = marker, icon = icon)
 
-        Circle(center = marker.position, radius = 20.0, fillColor = MaterialTheme.colors.primary.copy(alpha = 0.2f))
+        Circle(center = marker.position, radius = 20.0, fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
     }
 }
 
@@ -283,3 +310,70 @@ private fun createCustomMarkerBitmap(name: String, subtext: String, context: Con
     return outputBitmap
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun SelectVehicleSheet(
+    vehicles: List<Vehicle>,
+    onAddVehicleClicked: () -> Unit,
+    onVehicleSelected: (Vehicle) -> Unit,
+
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val modalSheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded },
+        skipHalfExpanded = false
+    )
+
+    var isSheetFullScreen by remember { mutableStateOf(false) }
+    val modifier = if (isSheetFullScreen)
+        Modifier
+            .fillMaxSize()
+    else
+        Modifier.fillMaxWidth()
+
+    BackHandler(modalSheetState.isVisible) {
+        coroutineScope.launch { modalSheetState.hide() }
+    }
+
+    ModalBottomSheetLayout(
+        sheetState = modalSheetState,
+        sheetShape = MaterialTheme.shapes.large,
+        sheetContent = {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text("Select Vehicle", style = MaterialTheme.typography.titleLarge)
+                Spacer(modifier = Modifier.height(16.dp))
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                ) {
+                    items(vehicles, key = { item -> item.vehicleUuid }) {vehicle ->
+                        VehicleItem(vehicle = vehicle) {
+                            onVehicleSelected(vehicle)
+                            coroutineScope.launch { modalSheetState.hide() }
+                        }
+                    }
+                }
+            }
+        }
+    ) {}
+}
+
+@Composable
+fun VehicleItem(vehicle: Vehicle, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(
+            Modifier.padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(vehicle.plateNumber, fontFamily = FontFamily.Monospace)
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package com.chatchatabc.parking.viewModel
 
 import com.chatchatabc.parking.api.ParkingAPI
+import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.google.android.gms.maps.model.LatLngBounds
 import io.realm.kotlin.Realm
@@ -8,12 +9,15 @@ import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class ClientMapViewModel(
+class ClientMainViewModel(
     val parkingAPI: ParkingAPI,
     val parkingRealm: Realm
 ): BaseViewModel() {
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
+
+    val isSelectingVehicle = MutableStateFlow(false)
+    val selectedVehicle: MutableStateFlow<Vehicle?> = MutableStateFlow(null)
 
     fun syncParkingLots() {
         load {
@@ -50,5 +54,10 @@ class ClientMapViewModel(
                 }
             }
         }
+    }
+
+    fun openVehicleSelector() {
+        isSelectingVehicle.value = true
+        selectedVehicle.value = null
     }
 }
