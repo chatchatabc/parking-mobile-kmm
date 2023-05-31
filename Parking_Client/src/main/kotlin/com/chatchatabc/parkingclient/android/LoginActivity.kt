@@ -111,7 +111,6 @@ class LoginActivity: ComponentActivity() {
                                     LoginState.PHONE -> LoginView(
                                         loginTitle = "Parking User Login",
                                         errors = errors,
-                                        hasUsername = true,
                                         tos = tos,
                                         username = username,
                                         phone = phone,

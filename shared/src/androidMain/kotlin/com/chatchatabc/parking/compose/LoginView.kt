@@ -28,7 +28,6 @@ fun LoginView(
     phone: String,
     tos: Boolean,
     username: String? = null,
-    hasUsername: Boolean = false,
     onPhoneChanged: (String) -> Unit,
     onUsernameChanged: (String) -> Unit = {},
     onTosChanged: (Boolean) -> Unit,
@@ -40,6 +39,23 @@ fun LoginView(
             modifier = Modifier
                 .fillMaxWidth(),
             style = MaterialTheme.typography.titleLarge
+        )
+
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = username ?: "",
+            onValueChange = { onUsernameChanged(it) },
+            label = { Text("Username") },
+            isError = errors.containsKey("username"),
+            supportingText = {
+                errors["username"]?.let {
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         // TODO: Add validation for number
@@ -63,25 +79,6 @@ fun LoginView(
                 }
             }
         )
-
-        if (hasUsername && username != null) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = username,
-                onValueChange = { onUsernameChanged(it) },
-                label = { Text("Username") },
-                isError = errors.containsKey("username"),
-                supportingText = {
-                    errors["username"]?.let {
-                        Text(
-                            it,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            )
-        }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = tos, onCheckedChange = { onTosChanged(it) })
