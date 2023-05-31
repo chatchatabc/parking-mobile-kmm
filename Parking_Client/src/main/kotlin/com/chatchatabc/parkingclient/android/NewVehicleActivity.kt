@@ -3,30 +3,32 @@ package com.chatchatabc.parkingclient.android
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Surface
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.compose.wizard.CancelState
+import com.chatchatabc.parking.compose.wizard.WizardLayout
+import com.chatchatabc.parking.compose.wizard.WizardSegmentedSelector
+import com.chatchatabc.parking.compose.wizard.WizardTextField
 import com.chatchatabc.parking.di.NewVehicleModule
 import com.chatchatabc.parking.viewModel.NewVehicleViewModel
+import com.chatchatabc.parking.viewModel.VehicleType
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
@@ -38,10 +40,14 @@ class NewVehicleActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val page = viewModel.page.collectAsState()
-            val name = viewModel.name.collectAsState()
-            val platenumber = viewModel.platenumber.collectAsState()
-            val type = viewModel.type.collectAsState()
+            val page by viewModel.page.collectAsState()
+            val name by viewModel.name.collectAsState()
+            val platenumber by viewModel.platenumber.collectAsState()
+            val type by viewModel.type.collectAsState()
+            var isCancelPromptShown by rememberSaveable { mutableStateOf(false) }
+            val errors by viewModel.errors.collectAsState()
+
+            var cancelState by rememberSaveable { mutableStateOf(CancelState.NONE) }
 
             AppTheme {
                 Surface {
@@ -51,22 +57,76 @@ class NewVehicleActivity: ComponentActivity() {
                         pages = 2,
                         page = 0,
                         onNext = {
-                            viewModel.page.value += 1
+                            if (viewModel.validate(page)) viewModel.page.value += 1
                         },
                         onPrevious = {
                             viewModel.page.value -= 1
                         },
                         onSubmit = {
-                            viewModel.validateAndSubmitVehicle()
+                            viewModel.validateAndSubmit()
                         },
-                        onCancel = {
-
+                        cancelState = cancelState,
+                        onFinish = {
+                            finish()
                         },
-                        onSave = {
-
+                        onCancelStateChanged = { state ->
+                            cancelState = state
+                        },
+                    ) { page ->
+                        when (page) {
+                            0 -> Column(Modifier.padding(32.dp)) {
+                                WizardSegmentedSelector(
+                                    label = "Vehicle Type",
+                                    keyName = "type",
+                                    items = listOf(VehicleType.CAR, VehicleType.MOTORCYCLE),
+                                    itemLabels = {
+                                        when (it) {
+                                            VehicleType.CAR -> "Car"
+                                            VehicleType.MOTORCYCLE -> "Motorcycle"
+                                            VehicleType.NONE -> "None"
+                                        }
+                                    },
+                                    errors = errors,
+                                    selected = type,
+                                    onSelected = {
+                                        viewModel.type.value = it
+                                        viewModel.errors.value = errors.filterKeys { key -> key != "type" }
+                                    })
+                                WizardTextField(
+                                    value = name,
+                                    keyName = "name",
+                                    onValueChange = {
+                                        viewModel.name.value = it
+                                        viewModel.errors.value = errors.filterKeys { key -> key != "name" }
+                                    },
+                                    label = "Name",
+                                    errors = errors
+                                )
+                                WizardTextField(
+                                    value = platenumber,
+                                    keyName = "platenumber",
+                                    onValueChange = {
+                                        viewModel.platenumber.value = it
+                                        viewModel.errors.value = errors.filterKeys { key -> key != "platenumber" }
+                                    },
+                                    label = "Plate Number",
+                                    errors = errors,
+                                    supportingText = when (type) {
+                                        VehicleType.CAR -> "e.g. ABC-1234 or AB-12345 (for temporary plates)"
+                                        VehicleType.MOTORCYCLE -> "e.g. ABC-1234 or 1234-1234567 (for temporary plates)"
+                                        VehicleType.NONE -> null
+                                    }
+                                )
+                            }
+                            1 -> {
+                                Box(Modifier.fillMaxSize()) {
+                                    Column(Modifier.padding(32.dp).align(Alignment.Center)) {
+                                        Icon(Icons.Filled.Check, "Success")
+                                        Text("Vehicle successfully registered!")
+                                    }
+                                }
+                            }
                         }
-                    ) {
-
                     }
                 }
             }
@@ -81,108 +141,4 @@ fun NewVehicle(
     platenumber: String,
 ) {
 
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun WizardLayout(
-    title: String,
-    subtext: String? = null,
-    pages: Int,
-    page: Int,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onSubmit: () -> Unit,
-    onCancel: () -> Unit,
-    onSave: () -> Unit,
-    content: @Composable (page: Int) -> Unit
-) {
-    val pagerState = rememberPagerState(initialPage = 0)
-    val progress by animateFloatAsState(targetValue = 1f / 4 * (page + 1))
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .padding(32.dp, 16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.fillMaxWidth(0.75f)
-            )
-            // TODO: Add subtext
-        }
-
-        LaunchedEffect(page) {
-            pagerState.animateScrollToPage(page)
-        }
-
-        LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
-            progress = progress
-        )
-
-        HorizontalPager(
-            state = pagerState,
-            pageCount = 4,
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.background),
-            beyondBoundsPageCount = 1, userScrollEnabled = false,
-        ) { page ->
-            content(page)
-        }
-
-//        val popupOpened by viewModel.popupOpened.collectAsState()
-
-//        if (popupOpened) {
-//            AlertDialog(onDismissRequest = {
-//                viewModel.popupOpened.value = false
-//            }) {
-//                (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.50f)
-//
-//                Box(
-//                    Modifier
-//                        .clip(RoundedCornerShape(32.dp))
-//                        .fillMaxWidth()
-//                        .background(MaterialTheme.colorScheme.surface),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    Column(
-//                        horizontalAlignment = Alignment.CenterHorizontally,
-//                        verticalArrangement = Arrangement.spacedBy(16.dp),
-//                        modifier = Modifier.padding(32.dp)
-//                    ) {
-//                        Text("Are you sure you want to cancel? Your changed will be saved.")
-//                        Row(
-//                            Modifier
-//                                .fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-//                        ) {
-//                            Button(
-//                                colors = ButtonDefaults.filledTonalButtonColors(),
-//                                onClick = {
-//                                    viewModel.popupOpened.value = false
-//                                }
-//                            ) {
-//                                Text("No")
-//                            }
-//                            Button(
-//                                colors = ButtonDefaults.filledTonalButtonColors(),
-//                                onClick = {
-//                                    finish()
-//                                }
-//                            ) {
-//                                Text("Yes")
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-    }
 }
