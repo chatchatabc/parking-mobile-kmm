@@ -109,6 +109,7 @@ class LoginActivity: ComponentActivity() {
                             Card(modifier = Modifier.animateItemPlacement().animateContentSize()) {
                                 when (loginState) {
                                     LoginState.PHONE -> LoginView(
+                                        loginTitle = "Parking User Login",
                                         errors = errors,
                                         hasUsername = true,
                                         tos = tos,
