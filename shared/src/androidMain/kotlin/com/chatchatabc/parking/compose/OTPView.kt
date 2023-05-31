@@ -15,11 +15,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun OTPView(
     modifier: Modifier = Modifier,
@@ -34,7 +41,18 @@ fun OTPView(
 ) {
     Column(
         modifier = modifier.width(IntrinsicSize.Max),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+
+        val focusRequester = FocusRequester()
+        val keyboardController = LocalSoftwareKeyboardController.current
+
+        // Request focus and show the keyboard when the view is active
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+
         Row(
             Modifier
                 .width(IntrinsicSize.Max)
@@ -47,13 +65,18 @@ fun OTPView(
                     .padding(end = 8.dp)
                     .clip(CircleShape)
                     .clickable { onBackPressed() })
-            Text("Enter OTP",
+            Text(
+                "Enter OTP",
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleLarge)
+                style = MaterialTheme.typography.titleLarge
+            )
         }
 
         OtpTextField(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester)
+                .onFocusChanged { if (it.isFocused) keyboardController?.show() },
             otpText = otp,
             onOtpTextChange = { it, isComplete ->
                 onOTPChanged(it)
