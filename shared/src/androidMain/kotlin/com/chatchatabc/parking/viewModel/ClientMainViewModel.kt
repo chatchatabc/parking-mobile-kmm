@@ -1,5 +1,6 @@
 package com.chatchatabc.parking.viewModel
 
+import android.content.SharedPreferences
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class ClientMainViewModel(
     val parkingAPI: ParkingAPI,
-    val parkingRealm: Realm
+    val parkingRealm: Realm,
+    val sharedPreferences: SharedPreferences
 ): BaseViewModel() {
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
@@ -59,5 +61,10 @@ class ClientMainViewModel(
     fun openVehicleSelector() {
         isSelectingVehicle.value = true
         selectedVehicle.value = null
+    }
+
+    fun clearAuthToken() {
+        // Change activity to loginActivity
+        sharedPreferences.edit().remove("authToken").apply()
     }
 }

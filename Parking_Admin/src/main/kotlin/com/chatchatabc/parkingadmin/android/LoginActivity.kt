@@ -5,20 +5,27 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.chatchatabc.parking.compose.ErrorCard
 import com.chatchatabc.parking.compose.LoginView
 import com.chatchatabc.parking.compose.OTPView
 import com.chatchatabc.parking.compose.Theme.AppTheme
@@ -51,7 +58,6 @@ class LoginActivity : ComponentActivity() {
         setContent {
             val loginState by viewModel.uiState.collectAsState()
             val success by viewModel.isLoggedIn.collectAsState()
-
             val errors by viewModel.errors.collectAsState()
 
             LaunchedEffect(success) {
@@ -70,54 +76,90 @@ class LoginActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.primary
                 ) {
-                    Box(Modifier.padding(32.dp)){
-                        val otp by viewModel.otp.collectAsState()
-                        val phone by viewModel.phone.collectAsState()
-                        val tos by viewModel.tos.collectAsState()
-                        val timer by viewModel.timer.collectAsState()
+                    val otp by viewModel.otp.collectAsState()
+                    val phone by viewModel.phone.collectAsState()
+                    val username by viewModel.username.collectAsState()
+                    val tos by viewModel.tos.collectAsState()
+                    val timer by viewModel.timer.collectAsState()
 
-                        Card(Modifier.align(Alignment.Center)) {
-                            when (loginState) {
-                                LoginState.PHONE -> LoginView(
-                                    loginTitle = "Parking Owner Login",
-                                    errors = errors,
-                                    phone = phone,
-                                    tos = tos,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp),
-                                    onPhoneChanged = {
-                                        viewModel.phone.value = it
-                                        viewModel.errors.value = viewModel.errors.value.filter { it.key != "phone" }
-                                                      },
-                                    onTosChanged = {
-                                        viewModel.tos.value = it
-                                        viewModel.errors.value = viewModel.errors.value.filter { it.key != "tos" }},
-                                    onLogin = {
-                                        viewModel.validateAndSubmitPhone(LoginType.ADMIN)
-                                    }
-                                )
+                    LazyColumn(
+                        modifier = Modifier.padding(32.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        item(key = "error") {
+                            AnimatedVisibility(
+                                visible = errors.isNotEmpty(),
+                                modifier = Modifier.animateItemPlacement(),
+                                enter = fadeIn() + slideInVertically { 100 },
+                                exit = fadeOut(tween(200))
+                            ) {
+                                ErrorCard(
+                                    error = errors.values,
+                                ) {
+                                    viewModel.errors.value = emptyMap()
+                                }
+                            }
+                        }
 
-                                LoginState.OTP -> OTPView(
-                                    errors = errors,
-                                    timer = timer,
-                                    otp = otp,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(32.dp),
-                                    number = phone,
-                                    onBackPressed = { viewModel.uiState.value = LoginState.PHONE },
-                                    onOTPChanged = { otp ->
-                                        viewModel.otp.value = otp
-                                        viewModel.errors.value = viewModel.errors.value.filter { it.key != "otp" }
-                                                   },
-                                    onOTPRefreshClicked = {
-                                        viewModel.validateAndSubmitPhone(LoginType.ADMIN)
-                                    },
-                                    onOTPConfirm = {
-                                        viewModel.validateAndSumbitOTP()
-                                    }
-                                )
+                        item(key = "card") {
+                            Card(
+                                modifier = Modifier
+                                    .animateItemPlacement()
+                                    .animateContentSize()
+                            ) {
+                                when (loginState) {
+                                    LoginState.PHONE -> LoginView(
+                                        loginTitle = "Parking Owner Login",
+                                        errors = errors,
+                                        phone = phone,
+                                        tos = tos,
+                                        username = username,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        onPhoneChanged = {
+                                            viewModel.phone.value = it
+                                            viewModel.errors.value =
+                                                viewModel.errors.value.filter { it.key != "phone" }
+                                        },
+                                        onUsernameChanged = {
+                                            viewModel.username.value = it
+                                            viewModel.errors.value = viewModel.errors.value.filter { it.key != "username" }
+                                        },
+                                        onTosChanged = {
+                                            viewModel.tos.value = it
+                                            viewModel.errors.value =
+                                                viewModel.errors.value.filter { it.key != "tos" }
+                                        },
+                                        onLogin = {
+                                            viewModel.validateAndSubmitPhone(LoginType.ADMIN)
+                                        }
+                                    )
+
+                                    LoginState.OTP -> OTPView(
+                                        errors = errors,
+                                        timer = timer,
+                                        otp = otp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        number = phone,
+                                        onBackPressed = {
+                                            viewModel.uiState.value = LoginState.PHONE
+                                        },
+                                        onOTPChanged = { otp ->
+                                            viewModel.otp.value = otp
+                                            viewModel.errors.value =
+                                                viewModel.errors.value.filter { it.key != "otp" }
+                                        },
+                                        onOTPRefreshClicked = {
+                                            viewModel.validateAndSubmitPhone(LoginType.ADMIN)
+                                        },
+                                        onOTPConfirm = {
+                                            viewModel.validateAndSubmitOTP()
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

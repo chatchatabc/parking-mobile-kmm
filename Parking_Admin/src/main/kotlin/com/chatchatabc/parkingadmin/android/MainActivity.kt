@@ -57,7 +57,7 @@ import com.chatchatabc.parking.viewModel.MainViewModel
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
-class MainActivity: ComponentActivity() {
+class MainActivity : ComponentActivity() {
     val koinModule = loadKoinModules(MainModule)
 
     val viewModel: MainViewModel by inject()
@@ -95,43 +95,70 @@ class MainActivity: ComponentActivity() {
                                 containerColor = Color.Transparent,
                                 actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
                                 titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                scrolledContainerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 1f),
+                                scrolledContainerColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                    alpha = 1f
+                                ),
                             ),
                             title = {
                                 Text("Dashboard", style = MaterialTheme.typography.titleMedium)
                             },
                             actions = {
                                 IconButton(onClick = { /* TODO*/ }) {
-                                    Icon(Icons.Filled.Settings, contentDescription = "Notifications", Modifier.size(24.dp))
+                                    Icon(
+                                        Icons.Filled.Settings,
+                                        contentDescription = "Notifications",
+                                        Modifier.size(24.dp)
+                                    )
                                 }
                                 IconButton(onClick = { /* TODO */ }) {
-                                    Icon(Icons.Filled.NotificationsNone, contentDescription = "Notifications", Modifier.size(24.dp))
+                                    Icon(
+                                        Icons.Filled.NotificationsNone,
+                                        contentDescription = "Notifications",
+                                        Modifier.size(24.dp)
+                                    )
                                 }
-                                IconButton(onClick = { /* TODO */ }) {
-                                    Icon(Icons.Filled.AccountCircle, contentDescription = "Account", Modifier.size(32.dp))
+                                // TODO: Clicking Account Icon Temporarily Logs User out. Replace with actual button
+                                IconButton(onClick = {
+                                    viewModel.clearAuthToken()
+                                    startActivity(
+                                        Intent(
+                                            this@MainActivity,
+                                            LoginActivity::class.java
+                                        ).apply {
+                                            flags =
+                                                Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                        })
+                                }) {
+                                    Icon(
+                                        Icons.Filled.AccountCircle,
+                                        contentDescription = "Account",
+                                        Modifier.size(32.dp)
+                                    )
                                 }
                             },
                             scrollBehavior = scrollBehavior
                         )
                     }
                 ) {
-                    Column(modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(it),
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(it),
                         verticalArrangement = Arrangement.Center
                     ) {
                         // TODO: Add logic for Dashboard View vs New Parking Lot Prompt
                         if (!isLoading) {
-                            Box(modifier = Modifier
-                                .padding(32.dp)
-                                .fillMaxWidth()
-                                .height(150.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.onSecondaryContainer.copy(
-                                        alpha = 0.1f
-                                    )
-                                ),
+                            Box(
+                                modifier = Modifier
+                                    .padding(32.dp)
+                                    .fillMaxWidth()
+                                    .height(150.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(
+                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                            alpha = 0.1f
+                                        )
+                                    ),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(
@@ -158,8 +185,7 @@ class MainActivity: ComponentActivity() {
                                         ) {
                                             Text("Create a new parking lot")
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         when (parkingLot!!.status) {
                                             ParkingLot.DRAFT -> {
                                                 Text(
@@ -168,9 +194,15 @@ class MainActivity: ComponentActivity() {
                                                 )
                                                 Button(onClick = {
                                                     startActivity(
-                                                        Intent(this@MainActivity, NewParkingLotActivity::class.java).apply {
+                                                        Intent(
+                                                            this@MainActivity,
+                                                            NewParkingLotActivity::class.java
+                                                        ).apply {
                                                             parkingLot?.let {
-                                                                this.putExtra("parkingLot", it.parkingLotUuid)
+                                                                this.putExtra(
+                                                                    "parkingLot",
+                                                                    it.parkingLotUuid
+                                                                )
                                                             }
                                                         }
                                                     )
@@ -178,6 +210,7 @@ class MainActivity: ComponentActivity() {
                                                     Text("Continue editing")
                                                 }
                                             }
+
                                             ParkingLot.PENDING_VERIFICATION -> {
                                                 Text(
                                                     "Your parking lot is pending verification",
@@ -291,19 +324,22 @@ fun DashboardView() {
                             .weight(200f)
                             .clip(RoundedCornerShape(3.dp))
                             .fillMaxWidth()
-                            .background(Color.Green))
+                            .background(Color.Green)
+                    )
                     Box(
                         Modifier
                             .weight(17f)
                             .clip(RoundedCornerShape(3.dp))
                             .fillMaxWidth()
-                            .background(Color.Yellow))
+                            .background(Color.Yellow)
+                    )
                     Box(
                         Modifier
                             .weight(139f)
                             .clip(RoundedCornerShape(3.dp))
                             .fillMaxWidth()
-                            .background(Color.Gray))
+                            .background(Color.Gray)
+                    )
                 }
             }
         }
@@ -312,11 +348,17 @@ fun DashboardView() {
                 Column(
                     Modifier
                         .padding(16.dp)
-                        .fillMaxWidth()) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text("TRAFFIC", style = MaterialTheme.typography.labelSmall)
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             Icon(Icons.Filled.ArrowUpward, null, Modifier.size(16.dp))
                             Text("32.2%", style = MaterialTheme.typography.labelSmall)
                         }
@@ -334,11 +376,17 @@ fun DashboardView() {
                 Column(
                     Modifier
                         .padding(16.dp)
-                        .fillMaxWidth()) {
-                    Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        .fillMaxWidth()
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text("PROFIT", style = MaterialTheme.typography.labelSmall)
-                        Row(verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             Icon(Icons.Filled.ArrowUpward, null, Modifier.size(16.dp))
                             Text("32.2%", style = MaterialTheme.typography.labelSmall)
                         }
@@ -366,18 +414,28 @@ fun OverrideCapacityCard() {
         Row(
             Modifier
                 .height(IntrinsicSize.Min)
-                .padding(16.dp), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 Modifier
                     .background(Color.Red)
                     .fillMaxHeight()
-                    .width(96.dp)) {
-                Icon(Icons.Filled.Remove, null,
+                    .width(96.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Remove, null,
                     Modifier
                         .size(32.dp)
-                        .align(Alignment.Center))
+                        .align(Alignment.Center)
+                )
             }
-            Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text("CAPACITY", style = MaterialTheme.typography.labelSmall)
                 Text(
                     "200", style = MaterialTheme.typography.displaySmall.copy(
@@ -391,11 +449,14 @@ fun OverrideCapacityCard() {
                 Modifier
                     .background(Color.Green)
                     .fillMaxHeight()
-                    .width(96.dp)) {
-                Icon(Icons.Filled.Remove, null,
+                    .width(96.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Remove, null,
                     Modifier
                         .size(32.dp)
-                        .align(Alignment.Center))
+                        .align(Alignment.Center)
+                )
             }
         }
     }

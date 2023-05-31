@@ -1,5 +1,6 @@
 package com.chatchatabc.parking.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -27,18 +28,37 @@ fun LoginView(
     phone: String,
     tos: Boolean,
     username: String? = null,
-    hasUsername: Boolean = false,
     onPhoneChanged: (String) -> Unit,
     onUsernameChanged: (String) -> Unit = {},
     onTosChanged: (Boolean) -> Unit,
     onLogin: () -> Unit,
 ) {
     Column(modifier.width(IntrinsicSize.Max), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(loginTitle,
+        Text(
+            loginTitle,
             modifier = Modifier
                 .fillMaxWidth(),
             style = MaterialTheme.typography.titleLarge
         )
+
+        if (username != null) {
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = username,
+                onValueChange = { onUsernameChanged(it) },
+                label = { Text("Username") },
+                isError = errors.containsKey("username"),
+                supportingText = {
+                    errors["username"]?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            )
+        }
 
         // TODO: Add validation for number
         OutlinedTextField(
@@ -53,29 +73,25 @@ fun LoginView(
             },
             supportingText = {
                 errors["phone"]?.let {
-                    Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        it,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         )
 
-        if (hasUsername && username != null) {
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = username,
-                onValueChange = { onUsernameChanged(it) },
-                label = { Text("Username") },
-                isError = errors.containsKey("username"),
-                supportingText = {
-                    errors["username"]?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            )
-        }
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = tos, onCheckedChange = { onTosChanged(it) })
-            Text("I agree to the terms and conditions", modifier = Modifier.fillMaxWidth(), style = MaterialTheme.typography.labelLarge)
+            // TODO: Add link to TOS page
+            Text(
+                "I agree to the terms and conditions",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTosChanged(!tos) },
+                style = MaterialTheme.typography.labelLarge
+            )
         }
         Button(modifier = Modifier.fillMaxWidth(), onClick = { onLogin() }) {
             Text("Login")

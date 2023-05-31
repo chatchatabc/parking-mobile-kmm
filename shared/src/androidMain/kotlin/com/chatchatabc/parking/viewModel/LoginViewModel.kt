@@ -56,12 +56,12 @@ class LoginViewModel(
         errors.value = mapOf()
         if (phone.value.length < 10) errors.value = mapOf("phone" to "Invalid phone number.")
         if (loginType == LoginType.MEMBER && username.value.length < 8) errors.value = mapOf("username" to "Invalid username.")
+        if (!tos.value) errors.value = mapOf("tos" to "Please accept the terms of service before continuing")
         if (errors.value.isNotEmpty()) return
-
         viewModelScope.launch {
             isLoading.value = true
             try {
-                with (api.login(LoginDTO(phone.value))) {
+                with (api.login(LoginDTO(phone.value, username.value))) {
                     if (!error) uiState.value = LoginState.OTP
                     else errors.value = mapOf("phone" to "Something went wrong. Please try again.")
                 }
@@ -73,7 +73,7 @@ class LoginViewModel(
         }
     }
 
-    fun validateAndSumbitOTP() {
+    fun validateAndSubmitOTP() {
         viewModelScope.launch {
             isLoading.value = true
             try {

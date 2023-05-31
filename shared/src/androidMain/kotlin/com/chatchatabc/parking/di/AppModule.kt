@@ -63,8 +63,9 @@ val AppModule = module {
 }
 
 val LoginModule = module {
+    includes(EncryptedSharedPreferencesModule)
     single { LoginAPI(get()) }
-    viewModel { LoginViewModel(get(), get()) }
+    viewModel { LoginViewModel(get(), get(), get()) }
 }
 
 val NewUserModule = module {
@@ -83,7 +84,7 @@ val NewParkingLotModule = module {
 }
 
 val MainModule = module {
-    includes(TokenModule)
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     single { UserAPI(get(), get(named("token"))) }
     viewModel {
@@ -99,7 +100,7 @@ val ParkingRealmModule = module {
 }
 
 val MainMapModule = module {
-    includes(TokenModule)
+    includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
         ClientMainViewModel(get(), get(named("parkingRealm")))

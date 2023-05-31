@@ -111,7 +111,6 @@ class LoginActivity: ComponentActivity() {
                                     LoginState.PHONE -> LoginView(
                                         loginTitle = "Parking User Login",
                                         errors = errors,
-                                        hasUsername = true,
                                         tos = tos,
                                         username = username,
                                         phone = phone,
@@ -152,7 +151,7 @@ class LoginActivity: ComponentActivity() {
                                             viewModel.errors.value = viewModel.errors.value.filter { it.key != "otp" }
                                         }
                                     ) {
-                                        viewModel.validateAndSumbitOTP()
+                                        viewModel.validateAndSubmitOTP()
                                     }
                                 }
                             }
