@@ -1,6 +1,7 @@
 package com.chatchatabc.parkingclient.android
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -115,9 +116,20 @@ class MainActivity : LocationActivity() {
                                     icon = { Icon(Icons.Outlined.DirectionsCar, "Vehicles") },
                                     label = { Text("Map") }
                                 )
+                                // TODO: Clicking Account Icon Temporarily Logs User out. Replace with actual button
                                 NavigationBarItem(
                                     selected = false,
-                                    onClick = { /*TODO*/ },
+                                    onClick = {
+                                        viewModel.clearAuthToken()
+                                        startActivity(
+                                            Intent(
+                                                this@MainActivity,
+                                                LoginActivity::class.java
+                                            ).apply {
+                                                flags =
+                                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                            })
+                                    },
                                     icon = { Icon(Icons.Outlined.AccountCircle, "My Account") },
                                     label = { Text("Account") }
                                 )
