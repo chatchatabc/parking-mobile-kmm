@@ -1,7 +1,9 @@
 package com.chatchatabc.parking.viewModel
 
 import android.content.SharedPreferences
+import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.ParkingAPI
+import com.chatchatabc.parking.api.ProfileAPI
 import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.google.android.gms.maps.model.LatLngBounds
@@ -9,9 +11,11 @@ import io.realm.kotlin.Realm
 import io.realm.kotlin.UpdatePolicy
 import io.realm.kotlin.ext.query
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 class ClientMainViewModel(
     val parkingAPI: ParkingAPI,
+    val profileAPI: ProfileAPI,
     val parkingRealm: Realm,
     val sharedPreferences: SharedPreferences
 ): BaseViewModel() {
@@ -64,7 +68,10 @@ class ClientMainViewModel(
     }
 
     fun clearAuthToken() {
-        // Change activity to loginActivity
-        sharedPreferences.edit().remove("authToken").apply()
+        viewModelScope.launch {
+            // Change activity to loginActivity
+            profileAPI.logout()
+            sharedPreferences.edit().remove("authToken").apply()
+        }
     }
 }
