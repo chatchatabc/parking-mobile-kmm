@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainModule
 import com.chatchatabc.parking.model.ParkingLot
-import com.chatchatabc.parking.viewModel.LoginActivity
 import com.chatchatabc.parking.viewModel.MainViewModel
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules

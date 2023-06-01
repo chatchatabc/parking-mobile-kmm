@@ -1,110 +1,175 @@
-package com.chatchatabc.parking.viewModel
+package com.chatchatabc.parkingadmin.android
 
+import android.content.Intent
 import android.content.SharedPreferences
-import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.chatchatabc.parking.api.LoginAPI
-import com.chatchatabc.parking.model.User
-import com.chatchatabc.parking.model.dto.LoginDTO
-import com.chatchatabc.parking.model.dto.OTPLoginDTO
-import com.chatchatabc.parking.model.response.ApiResponse
-import io.ktor.client.call.body
-import io.ktor.http.isSuccess
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
-
-// TODO: Better error handling
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.chatchatabc.parking.compose.ErrorCard
+import com.chatchatabc.parking.compose.LoginView
+import com.chatchatabc.parking.compose.OTPView
+import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.di.LoginModule
+import com.chatchatabc.parking.viewModel.LoginState
+import com.chatchatabc.parking.viewModel.LoginType
+import com.chatchatabc.parking.viewModel.LoginViewModel
+import org.koin.android.ext.android.inject
+import org.koin.core.context.loadKoinModules
 
 enum class LoginType {
     ADMIN,
     MEMBER
 }
 
-class LoginActivity(
-    val api: LoginAPI,
-    val sharedPreferences: SharedPreferences
-): ViewModel() {
-    val phone = MutableStateFlow("")
-    val username = MutableStateFlow("")
-    val tos = MutableStateFlow(false)
-    val otp = MutableStateFlow("")
+class LoginActivity : ComponentActivity() {
+    val koinModule = loadKoinModules(LoginModule)
+    val preferences: SharedPreferences by inject()
 
-    val timer = MutableStateFlow(0)
+    val viewModel: LoginViewModel by inject()
 
-    val requiresUsername = MutableStateFlow(false)
+    @OptIn(ExperimentalFoundationApi::class)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-    fun startTimer() {
-        timer.value = 60
-        viewModelScope.launch {
-            while (timer.value > 0) {
-                timer.value -= 1
-                kotlinx.coroutines.delay(1000)
-            }
+        if (preferences.contains("authToken")) {
+            startActivity(Intent(
+                this@LoginActivity,
+                MainActivity::class.java
+            ).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            })
         }
-    }
 
-    val isLoading = MutableStateFlow(false)
-    val isLoggedIn = MutableStateFlow(false)
+        setContent {
+            val loginState by viewModel.uiState.collectAsState()
+            val success by viewModel.isLoggedIn.collectAsState()
+            val errors by viewModel.appErrors.collectAsState()
 
-    var hasUserDetails = false
-
-    var uiState = MutableStateFlow(LoginState.PHONE)
-    var appErrors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
-
-    fun validateAndSubmitPhone(loginType: LoginType) {
-        appErrors.value = mapOf()
-        if (phone.value.length < 10) appErrors.value = mapOf("phone" to "Invalid phone number.")
-        if (username.value.length < 8) appErrors.value = mapOf("username" to "Invalid username.")
-        if (!tos.value) appErrors.value = mapOf("tos" to "Please accept the terms of service before continuing")
-        if (appErrors.value.isNotEmpty()) return
-        viewModelScope.launch {
-            isLoading.value = true
-            try {
-                with (api.login(LoginDTO(phone.value))) {
-                    println(this)
-                    if (errors.isNullOrEmpty()) uiState.value = LoginState.OTP
-                    else appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+            LaunchedEffect(success) {
+                if (success) {
+                    startActivity(Intent(
+                        this@LoginActivity,
+                        if (!viewModel.hasUserDetails) NewUserActivity::class.java else MainActivity::class.java
+                    ).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                    })
                 }
-            } catch (e: Exception) {
-                Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
             }
-            isLoading.value = false
-        }
-    }
 
-    fun validateAndSubmitOTP() {
-        viewModelScope.launch {
-            isLoading.value = true
-            try {
-                with(api.verifyOTP(OTPLoginDTO(phone.value, otp.value))) {
-                    if (status.isSuccess()) {
-                        body<ApiResponse<User>>().let { response ->
-                            if (response.errors.isNullOrEmpty()) {
-                                headers["X-Access-Token"]?.let {
-                                    sharedPreferences.edit().putString("authToken", it).apply()
-                                    Log.d("TOKEN", it)
+            AppTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.primary
+                ) {
+                    val otp by viewModel.otp.collectAsState()
+                    val phone by viewModel.phone.collectAsState()
+                    val username by viewModel.username.collectAsState()
+                    val tos by viewModel.tos.collectAsState()
+                    val timer by viewModel.timer.collectAsState()
+
+                    LazyColumn(
+                        modifier = Modifier.padding(32.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        item(key = "error") {
+                            AnimatedVisibility(
+                                visible = errors.isNotEmpty(),
+                                modifier = Modifier.animateItemPlacement(),
+                                enter = fadeIn() + slideInVertically { 100 },
+                                exit = fadeOut(tween(200))
+                            ) {
+                                ErrorCard(
+                                    error = errors.values,
+                                ) {
+                                    viewModel.appErrors.value = emptyMap()
                                 }
-                                isLoggedIn.value = true
-                                hasUserDetails = body<ApiResponse<User>>().data!!.firstName != null
-                            } else {
-                                appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
                             }
                         }
-                    } else appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
+
+                        item(key = "card") {
+                            Card(
+                                modifier = Modifier
+                                    .animateItemPlacement()
+                                    .animateContentSize()
+                            ) {
+                                when (loginState) {
+                                    LoginState.PHONE -> LoginView(
+                                        loginTitle = "Parking Owner Login",
+                                        errors = errors,
+                                        phone = phone,
+                                        tos = tos,
+                                        username = username,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        onPhoneChanged = {
+                                            viewModel.phone.value = it
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "phone" }
+                                        },
+                                        onUsernameChanged = {
+                                            viewModel.username.value = it
+                                            viewModel.appErrors.value = viewModel.appErrors.value.filter { it.key != "username" }
+                                        },
+                                        onTosChanged = {
+                                            viewModel.tos.value = it
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "tos" }
+                                        },
+                                        onLogin = {
+                                            viewModel.validateAndSubmitPhone(LoginType.ADMIN)
+                                        }
+                                    )
+
+                                    LoginState.OTP -> OTPView(
+                                        errors = errors,
+                                        timer = timer,
+                                        otp = otp,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        number = phone,
+                                        onBackPressed = {
+                                            viewModel.uiState.value = LoginState.PHONE
+                                        },
+                                        onOTPChanged = { otp ->
+                                            viewModel.otp.value = otp
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "otp" }
+                                        },
+                                        onOTPRefreshClicked = {
+                                            viewModel.validateAndSubmitPhone(LoginType.ADMIN)
+                                        },
+                                        onOTPConfirm = {
+                                            viewModel.validateAndSubmitOTP()
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("otp" to "Something went wrong. Please try again.")
             }
-            isLoading.value = false
         }
     }
-}
-
-enum class LoginState {
-    PHONE,
-    OTP
 }
