@@ -458,7 +458,9 @@ fun SelectVehicleSheet(
                         .weight(1f)
                 ) {
                     item {
-                        Card(modifier = Modifier.fillMaxWidth(), onClick = {onAddVehicleClicked()}) {
+                        Card(modifier = Modifier.fillMaxWidth(), onClick = {
+                            onAddVehicleClicked()
+                        }) {
                             Row(Modifier.padding(8.dp)) {
                                 Text("Add Vehicle")
                                 Icon(
