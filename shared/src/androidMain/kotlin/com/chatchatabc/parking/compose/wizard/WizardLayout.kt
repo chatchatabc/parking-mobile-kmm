@@ -119,7 +119,7 @@ fun WizardLayout(
                 .padding(32.dp, 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (page < pages) {
+            if (page < pages - 1) {
                 OutlinedIconButton(onClick = {
                     onCancelStateChanged(CancelState.PROMPT)
                 }, colors = IconButtonDefaults.outlinedIconButtonColors()) {
@@ -127,7 +127,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page > 0) {
+            if (page > 0 && pages < page - 2) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -169,7 +169,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page < pages-1) {
+            if (page >= 0 && page < pages-1) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = { onSubmit() },
@@ -177,7 +177,7 @@ fun WizardLayout(
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    Text("Submit")
+                    Text("Save")
                 }
             }
         }
