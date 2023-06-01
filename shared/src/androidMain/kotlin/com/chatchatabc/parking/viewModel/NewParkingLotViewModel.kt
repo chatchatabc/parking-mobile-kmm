@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): ViewModel() {
-    val popupOpened = MutableStateFlow(false)
-    var currentPage = MutableStateFlow(0)
+    var page = MutableStateFlow(0)
 
     var errors = MutableStateFlow(mapOf<String, String>())
 
@@ -165,12 +164,14 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
 
     fun saveDraft() {
         viewModelScope.launch {
-            if (uuid.value.isBlank()) {
-                api.createDraft(createDTO()).let {
-                    if (!it.errors.isNullOrEmpty()) {
-                        uuid.value = it.data!!.parkingLotUuid
-                    }
-                }
+            api.saveDraft(createDTO())
+        }
+    }
+
+    fun createDraft() {
+        viewModelScope.launch {
+            if (uuid.value.isEmpty()) {
+                api.createDraft(createDTO())
             } else {
                 api.saveDraft(createDTO())
             }
@@ -180,8 +181,8 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     fun setToPending() {
         viewModelScope.launch {
             val result = api.setToPending()
-            if (!result.errors.isNullOrEmpty()) {
-                currentPage.value = 3
+            if (result.errors.isEmpty()) {
+                page.value = 3
             }
         }
     }
@@ -200,8 +201,8 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
         )
     }
 
-    fun validateCurrentPage(): Boolean {
-        validations[currentPage.value]?.invoke()
+    fun validate(page: Int): Boolean {
+        validations[page]?.invoke()
         return errors.value.isEmpty()
     }
 
@@ -209,7 +210,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
         validations.onEach { (index, function) ->
             function.invoke()
             if (errors.value.isNotEmpty()) {
-                currentPage.value = index
+                page.value = index
                 return
             }
         }
