@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ApiResponse<T>(
     val data: T? = null,
-    val errors: List<ErrorElement>? = null
+    val errors: List<ErrorElement> = emptyList()
 )
 
 @Serializable
