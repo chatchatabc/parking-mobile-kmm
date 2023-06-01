@@ -245,7 +245,15 @@ class NewParkingLotActivity : LocationActivity() {
                         pages = 4,
                         page = page,
                         onNext = {
-                            if (viewModel.validate(page)) viewModel.page.value += 1
+                            if (viewModel.validate(page)) {
+                                viewModel.page.value += 1
+                                if (page == 0) {
+                                    viewModel.createDraft()
+                                }
+                                else {
+                                    viewModel.saveDraft()
+                                }
+                            }
                         },
                         onPrevious = {
                             viewModel.page.value -= 1

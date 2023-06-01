@@ -164,12 +164,14 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
 
     fun saveDraft() {
         viewModelScope.launch {
-            if (uuid.value.isBlank()) {
-                api.createDraft(createDTO()).let {
-                    if (!it.errors.isNullOrEmpty()) {
-                        uuid.value = it.data!!.parkingLotUuid
-                    }
-                }
+            api.saveDraft(createDTO())
+        }
+    }
+
+    fun createDraft() {
+        viewModelScope.launch {
+            if (uuid.value.isEmpty()) {
+                api.createDraft(createDTO())
             } else {
                 api.saveDraft(createDTO())
             }
