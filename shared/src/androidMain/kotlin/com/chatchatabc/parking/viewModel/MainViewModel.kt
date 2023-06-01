@@ -15,7 +15,7 @@ class MainViewModel(
     val parkingAPI: ParkingAPI,
     val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
-): ViewModel() {
+) : ViewModel() {
     val parkingLot: MutableStateFlow<ParkingLot?> = MutableStateFlow(null)
 
     val isLoading = MutableStateFlow(true)
@@ -40,8 +40,8 @@ class MainViewModel(
     fun clearAuthToken() {
         viewModelScope.launch {
             // Change activity to loginActivity
-            profileAPI.logout()
             sharedPreferences.edit().remove("authToken").apply()
+            profileAPI.logout()
         }
     }
 }

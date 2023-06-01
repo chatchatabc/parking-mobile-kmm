@@ -70,8 +70,8 @@ class ClientMainViewModel(
     fun clearAuthToken() {
         viewModelScope.launch {
             // Change activity to loginActivity
-            profileAPI.logout()
             sharedPreferences.edit().remove("authToken").apply()
+            profileAPI.logout()
         }
     }
 }
