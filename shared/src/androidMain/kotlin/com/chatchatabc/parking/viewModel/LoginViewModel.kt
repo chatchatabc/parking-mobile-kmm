@@ -5,11 +5,9 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.LoginAPI
-import com.chatchatabc.parking.model.User
+import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.model.dto.LoginDTO
 import com.chatchatabc.parking.model.dto.OTPLoginDTO
-import com.chatchatabc.parking.model.response.ApiResponse
-import io.ktor.client.call.body
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -22,8 +20,8 @@ enum class LoginType {
 }
 
 class LoginViewModel(
-    val api: LoginAPI,
-    val sharedPreferences: SharedPreferences
+    val loginAPI: LoginAPI,
+    val sharedPreferences: SharedPreferences,
 ): ViewModel() {
     val phone = MutableStateFlow("")
     val username = MutableStateFlow("")
@@ -54,14 +52,14 @@ class LoginViewModel(
 
     fun validateAndSubmitPhone(loginType: LoginType) {
         appErrors.value = mapOf()
-        if (phone.value.length < 10) appErrors.value = mapOf("phone" to "Invalid phone number.")
-        if (loginType == LoginType.MEMBER && username.value.length < 8) appErrors.value = mapOf("username" to "Invalid username.")
-        if (!tos.value) appErrors.value = mapOf("tos" to "Please accept the terms of service before continuing")
+        if (phone.value.length < 10) appErrors.value += mapOf("phone" to "Invalid phone number.")
+        if (loginType == LoginType.MEMBER && username.value.length < 8) appErrors.value += mapOf("username" to "Invalid username.")
+        if (!tos.value) appErrors.value += mapOf("tos" to "Please accept the terms of service before continuing")
         if (appErrors.value.isNotEmpty()) return
         viewModelScope.launch {
             isLoading.value = true
             try {
-                with (api.login(LoginDTO(phone.value, username.value))) {
+                with (loginAPI.login(LoginDTO(phone.value, username.value))) {
                     if (errors.isNullOrEmpty()) uiState.value = LoginState.OTP
                     else appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
                 }
@@ -77,18 +75,28 @@ class LoginViewModel(
         viewModelScope.launch {
             isLoading.value = true
             try {
-                with(api.verifyOTP(OTPLoginDTO(phone.value, otp.value))) {
+                with(loginAPI.verifyOTP(OTPLoginDTO(phone.value, otp.value))) {
                     if (status.isSuccess()) {
-                        body<ApiResponse<User>>().let { response ->
-                            if (response.errors.isNullOrEmpty()) {
-                                headers["X-Access-Token"]?.let {
-                                    sharedPreferences.edit().putString("authToken", it).apply()
-                                    Log.d("TOKEN", it)
-                                }
-                                isLoggedIn.value = true
-                                hasUserDetails = body<ApiResponse<User>>().data!!.firstName != null
-                            } else {
+                        val token = headers["X-Access-Token"]?.also {
+                            Log.d("TOKEN", it)
+
+                            if (it == null) {
                                 appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
+                                return@launch
+                            }
+
+                            sharedPreferences.edit().putString("authToken", it).apply()
+                        }
+
+                        isLoggedIn.value = true
+
+                        UserAPI(loginAPI.httpClient, token).getUser().let {
+                            if (it.errors.isEmpty()) {
+                                hasUserDetails = it.data!!.firstName != null
+                                isLoggedIn.value = true
+                            } else {
+                                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+                                uiState.value = LoginState.PHONE
                             }
                         }
                     } else appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
@@ -96,7 +104,8 @@ class LoginViewModel(
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("otp" to "Something went wrong. Please try again.")
+                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+                uiState.value = LoginState.PHONE
             }
             isLoading.value = false
         }
