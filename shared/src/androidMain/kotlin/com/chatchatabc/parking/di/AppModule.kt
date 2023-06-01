@@ -5,6 +5,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.chatchatabc.parking.api.LoginAPI
 import com.chatchatabc.parking.api.ParkingAPI
+import com.chatchatabc.parking.api.ProfileAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.httpClient
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
@@ -45,18 +46,20 @@ val EncryptedSharedPreferencesModule = module {
 }
 
 val AppModule = module {
-    single { httpClient {
-        // Allow incomplete JSON values
-        install(ContentNegotiation) {
-            Json {
-                ignoreUnknownKeys = true
+    single {
+        httpClient {
+            // Allow incomplete JSON values
+            install(ContentNegotiation) {
+                Json {
+                    ignoreUnknownKeys = true
+                }
+            }
+            ResponseObserver {
+                // Print entire response
+                println(it.bodyAsText())
             }
         }
-        ResponseObserver {
-            // Print entire response
-            println(it.bodyAsText())
-        }
-    } }
+    }
 }
 
 val LoginModule = module {
@@ -85,7 +88,7 @@ val MainModule = module {
     single { ParkingAPI(get(), get(named("token"))) }
     single { UserAPI(get(), get(named("token"))) }
     viewModel {
-        MainViewModel(get(), get(), get())
+        MainViewModel(get(), get(), get(), get())
     }
 }
 
@@ -98,16 +101,18 @@ val ParkingRealmModule = module {
 
 val MainMapModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
+    single { ProfileAPI(get(), get(named("token"))) }
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMainViewModel(get(), get(named("parkingRealm")), get())
+        ClientMainViewModel(get(), get(), get(named("parkingRealm")), get())
     }
 }
 
 val NewVehicleModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
+    single { ProfileAPI(get(), get(named("token"))) }
     single { ParkingAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMainViewModel(get(), get(named("parkingRealm")), get())
+        ClientMainViewModel(get(), get(), get(named("parkingRealm")), get())
     }
 }
