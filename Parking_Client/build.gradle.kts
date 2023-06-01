@@ -73,4 +73,7 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.realm/realm-android-kotlin-extensions
     implementation("io.realm:realm-android-kotlin-extensions:10.15.1")
+
+    // https://mvnrepository.com/artifact/io.github.g0dkar/qrcode-kotlin-android
+    implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
 }

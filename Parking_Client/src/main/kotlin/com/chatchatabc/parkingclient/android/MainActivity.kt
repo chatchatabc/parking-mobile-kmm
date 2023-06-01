@@ -4,49 +4,53 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.Motorcycle
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCar
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -57,14 +61,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.ContextCompat
@@ -75,6 +83,7 @@ import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
+import com.chatchatabc.parking.viewModel.VehicleType
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -93,6 +102,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import java.lang.Integer.max
+import android.graphics.Color as AndroidColor
 
 
 class MainActivity : LocationActivity() {
@@ -195,7 +205,7 @@ class MainActivity : LocationActivity() {
                     ) { padding ->
                         var hasPermission by remember { mutableStateOf(false)}
                         withLocationPermission {
-                           hasPermission = true
+                            hasPermission = true
                         }
 
                         if (hasPermission) {
@@ -210,9 +220,11 @@ class MainActivity : LocationActivity() {
                             }
                         }
 
-                        val vehicleSelectorShown = viewModel.isSelectingVehicle.collectAsState()
+                        val vehicleSelectorShown by viewModel.isSelectingVehicle.collectAsState()
 
-                        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+                        Box(modifier = Modifier
+                            .fillMaxSize()
+                            .padding(padding)) {
                             FloatingActionButton(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -225,19 +237,84 @@ class MainActivity : LocationActivity() {
                             }
                         }
 
-                        SelectVehicleSheet(
-                            vehicles = listOf(),
-                            isShown = vehicleSelectorShown.value,
-                            onStateChanged = {
-                                viewModel.isSelectingVehicle.value = it
-                            },
-                            onAddVehicleClicked = {
-                                Intent(this@MainActivity, NewVehicleActivity::class.java).also {
-                                    startActivity(it)
+                        var isQRShown by rememberSaveable { mutableStateOf(false) }
+                        val vehicles by viewModel.vehicles.collectAsState()
+
+                        if (vehicleSelectorShown) {
+                            SelectVehicleSheet(
+                                vehicles = vehicles,
+                                onDismiss = {
+                                    viewModel.isSelectingVehicle.value = it
+                                },
+                                onVehicleSelected = {
+                                    viewModel.isSelectingVehicle.value = false
+                                    viewModel.selectedVehicle.value = it
+                                    viewModel.createQRFromString(it.vehicleUuid)
+                                    isQRShown = true
+                                },
+                                onAddVehicleClicked = {
+                                    Intent(this@MainActivity, NewVehicleActivity::class.java).also {
+                                        startActivity(it)
+                                    }
+                                }
+                            )
+                        }
+
+                        val selectedVehicle by viewModel.selectedVehicle.collectAsState()
+
+                        val isLoadingQR by viewModel.isLoadingQRCode.collectAsState()
+                        val qrCode by viewModel.qrCode.collectAsState()
+
+                        if (isQRShown && selectedVehicle != null) {
+                            AlertDialog(onDismissRequest = {
+                                isQRShown = false
+                            }) {
+                                Column {
+                                    Card(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                    ) {
+                                        Box(Modifier.padding(16.dp)) {
+                                            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Parking QR Code", style = MaterialTheme.typography.labelLarge)
+                                                Text(
+                                                    selectedVehicle?.plateNumber ?: "",
+                                                    style = MaterialTheme.typography.headlineLarge,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                                Text(
+                                                    "Show this QR code to the parking attendant to enter the parking lot.",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    textAlign = TextAlign.Center,
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Card(
+                                        modifier = Modifier
+                                            .aspectRatio(1f)
+                                            .fillMaxWidth(),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = Color.White
+                                        )
+                                    ) {
+                                        Box(Modifier.padding(32.dp)) {
+                                            if (isLoadingQR) {
+                                                CircularProgressIndicator(Modifier.align(Alignment.Center))
+                                            } else {
+                                                qrCode?.let {
+                                                    Image(
+                                                        it.asImageBitmap(),
+                                                        contentDescription = "Parking QR Code",
+                                                        modifier = Modifier.align(Alignment.Center)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                        ) {
-                            /*TODO*/
                         }
                     }
                 }
@@ -338,14 +415,14 @@ private fun createCustomMarkerBitmap(name: String, subtext: String, context: Con
     val iconHeight = drawable?.intrinsicHeight ?: 0
 
     val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        setColor(Color.BLACK)
+        setColor(AndroidColor.BLACK)
         textSize = 32f
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
     }
 
     val outlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        setColor(Color.WHITE)
+        setColor(AndroidColor.WHITE)
         style = Paint.Style.STROKE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         strokeWidth = 2f
@@ -354,14 +431,14 @@ private fun createCustomMarkerBitmap(name: String, subtext: String, context: Con
     }
 
     val subtextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        setColor(Color.BLACK)
+        setColor(AndroidColor.BLACK)
         textSize = 24f
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.LEFT
     }
 
     val subtextOutlinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        setColor(Color.WHITE)
+        setColor(AndroidColor.WHITE)
         style = Paint.Style.STROKE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         strokeWidth = 1f
@@ -405,95 +482,90 @@ private fun createCustomMarkerBitmap(name: String, subtext: String, context: Con
 @Composable
 fun SelectVehicleSheet(
     vehicles: List<Vehicle>,
-    isShown: Boolean,
-    onStateChanged: (Boolean) -> Unit,
-    onAddVehicleClicked: () -> Unit,
+    onDismiss: (Boolean) -> Unit,
     onVehicleSelected: (Vehicle) -> Unit,
-
+    onAddVehicleClicked: () -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val modalSheetState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-        confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded },
-        skipHalfExpanded = false
-    )
-
-    LaunchedEffect(modalSheetState.isVisible) {
-        onStateChanged(modalSheetState.isVisible)
-    }
-
-    LaunchedEffect(isShown) {
-        if (isShown) {
-            modalSheetState.show()
-        } else {
-            modalSheetState.hide()
-        }
-    }
-
-    var isSheetFullScreen by remember { mutableStateOf(false) }
-    val modifier = if (isSheetFullScreen)
-        Modifier
-            .fillMaxSize()
-    else
-        Modifier.fillMaxWidth()
-
-    BackHandler(modalSheetState.isVisible) {
-        coroutineScope.launch { modalSheetState.hide() }
-    }
-
-    ModalBottomSheetLayout(
-        sheetState = modalSheetState,
-        sheetShape = MaterialTheme.shapes.large,
-        sheetContent = {
-            Column(
-                modifier = Modifier.padding(32.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center,
-            ) {
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss(false)
+        },
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            item {
                 Text("Select Vehicle", style = MaterialTheme.typography.titleLarge)
                 Spacer(modifier = Modifier.height(16.dp))
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onAddVehicleClicked()
+                    },
+                    colors = CardDefaults.outlinedCardColors()
                 ) {
-                    item {
-                        Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                            onAddVehicleClicked()
-                        }) {
-                            Row(Modifier.padding(8.dp)) {
-                                Text("Add Vehicle")
-                                Icon(
-                                    Icons.Filled.DirectionsCar,
-                                    contentDescription = "Add Vehicle",
-                                    modifier = Modifier
-                                        .padding(8.dp)
-                                )
-                            }
-                        }
-                    }
-                    items(vehicles, key = { item -> item.vehicleUuid }) {vehicle ->
-                        VehicleItem(vehicle = vehicle) {
-                            onVehicleSelected(vehicle)
-                            coroutineScope.launch { modalSheetState.hide() }
-                        }
+                    Row(Modifier.padding(16.dp, 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = "Add Vehicle",
+                            modifier = Modifier
+                                .padding(8.dp)
+                        )
+                        Text("Add Vehicle")
                     }
                 }
             }
+            items(vehicles, key = { item -> item.vehicleUuid }) {vehicle ->
+                VehicleItem(vehicle = vehicle) {
+                    onVehicleSelected(it)
+//                    coroutineScope.launch { modalSheetState.hide() }
+                    onDismiss(false)
+                }
+            }
         }
-    ) {}
+    }
+
+//    ModalBottomSheetLayout(
+////        modifier = Modifier.nestedScroll(scroll),
+//        sheetState = modalSheetState,
+//        sheetShape = MaterialTheme.shapes.large,
+//        sheetContent = {
+//
+//        }
+//    ) {
+//        Box(Modifier.fillMaxSize())
+//    }
 }
 
 @Composable
-fun VehicleItem(vehicle: Vehicle, onClick: () -> Unit) {
+fun VehicleItem(vehicle: Vehicle, onClick: (Vehicle) -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick(vehicle)
+            },
     ) {
-        Row(
-            Modifier.padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(vehicle.plateNumber, fontFamily = FontFamily.Monospace)
+            Text(vehicle.name, style = MaterialTheme.typography.titleMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    if (vehicle.type.toEnum<VehicleType>() == VehicleType.CAR) Icons.Filled.DirectionsCar else Icons.Filled.Motorcycle,
+                    contentDescription = "Vehicle Type",
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(vehicle.plateNumber, fontFamily = FontFamily.Monospace)
+            }
         }
     }
+}
+
+inline fun <reified T : Enum<T>> Int.toEnum(): T {
+    return enumValues<T>()[this]
 }
