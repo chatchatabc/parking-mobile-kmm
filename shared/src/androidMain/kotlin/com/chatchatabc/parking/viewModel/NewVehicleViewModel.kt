@@ -1,6 +1,6 @@
 package com.chatchatabc.parking.viewModel
 
-import androidx.lifecycle.ViewModel
+import com.chatchatabc.parking.api.NewVehicleDTO
 import com.chatchatabc.parking.api.VehicleAPI
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -10,7 +10,7 @@ enum class VehicleType {
     NONE
 }
 
-class NewVehicleViewModel(vehicleApi: VehicleAPI): ViewModel() {
+class NewVehicleViewModel(val vehicleApi: VehicleAPI): BaseViewModel() {
     var page = MutableStateFlow(0)
     var name = MutableStateFlow("")
     val platenumber = MutableStateFlow("")
@@ -22,6 +22,24 @@ class NewVehicleViewModel(vehicleApi: VehicleAPI): ViewModel() {
         validations.forEach { (currentPage, validation) ->
             validation.invoke()
             if (errors.value.isNotEmpty()) page.value = currentPage
+        }
+
+        if (errors.value.isEmpty()) {
+            load {
+                vehicleApi.register(
+                    NewVehicleDTO(
+                        name = name.value,
+                        plateNumber = platenumber.value,
+                        type = type.value.ordinal
+                    )
+                ).let {
+                    if (it.errors.isEmpty()) {
+                        page.value += 1
+                    } else {
+                        errors.value += errors.value + mapOf("global" to "Something went wrong. Please try again.")
+                    }
+                }
+            }
         }
     }
 

@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -18,9 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.compose.wizard.CancelState
 import com.chatchatabc.parking.compose.wizard.WizardLayout
@@ -53,9 +50,13 @@ class NewVehicleActivity: ComponentActivity() {
                 Surface {
                     // Use WizardView here, we might need additional pages in the future.
                     WizardLayout(
+                        errors = errors,
+                        onErrorDismiss = {
+                            viewModel.errors.value = errors.filterKeys { key -> key != "type" }
+                        },
                         title = "Register a New Vehicle",
                         pages = 2,
-                        page = 0,
+                        page = page,
                         onNext = {
                             if (viewModel.validate(page)) viewModel.page.value += 1
                         },
@@ -74,7 +75,7 @@ class NewVehicleActivity: ComponentActivity() {
                         },
                     ) { page ->
                         when (page) {
-                            0 -> Column(Modifier.padding(32.dp)) {
+                            0 -> Column {
                                 WizardSegmentedSelector(
                                     label = "Vehicle Type",
                                     keyName = "type",
@@ -120,7 +121,7 @@ class NewVehicleActivity: ComponentActivity() {
                             }
                             1 -> {
                                 Box(Modifier.fillMaxSize()) {
-                                    Column(Modifier.padding(32.dp).align(Alignment.Center)) {
+                                    Column {
                                         Icon(Icons.Filled.Check, "Success")
                                         Text("Vehicle successfully registered!")
                                     }
