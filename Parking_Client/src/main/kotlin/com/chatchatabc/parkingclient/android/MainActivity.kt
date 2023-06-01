@@ -128,10 +128,10 @@ class MainActivity : LocationActivity() {
                                     label = { Text("Map") }
                                 )
 
-                                val popupOpened by viewModel.logoutPopupOpened.collectAsState()
+                                val logoutPopupOpened by viewModel.logoutPopupOpened.collectAsState()
 
                                 // Logout confirmation alert dialog
-                                if (popupOpened) {
+                                if (logoutPopupOpened) {
                                     AlertDialog(onDismissRequest = {
                                         viewModel.logoutPopupOpened.value = false
                                     }) {
@@ -145,7 +145,7 @@ class MainActivity : LocationActivity() {
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(32.dp)) {
-                                                Text("Are you sure you want to logout? We will miss you!")
+                                                Text("Are you sure you want to logout? We will miss you!", color = MaterialTheme.colorScheme.onSurface)
                                                 Row(
                                                     Modifier
                                                         .fillMaxWidth(),

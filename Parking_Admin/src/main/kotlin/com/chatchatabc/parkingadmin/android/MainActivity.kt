@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -47,9 +48,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogWindowProvider
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainModule
 import com.chatchatabc.parking.model.ParkingLot
@@ -117,17 +120,62 @@ class MainActivity : ComponentActivity() {
                                         Modifier.size(24.dp)
                                     )
                                 }
+                                val popupOpened by viewModel.logoutPopupOpened.collectAsState()
+
+                                // Logout confirmation alert dialog
+                                if (popupOpened) {
+                                    AlertDialog(onDismissRequest = {
+                                        viewModel.logoutPopupOpened.value = false
+                                    }) {
+                                        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.50f)
+
+                                        Box(
+                                            Modifier
+                                                .clip(RoundedCornerShape(32.dp))
+                                                .fillMaxWidth()
+                                                .background(MaterialTheme.colorScheme.surface),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(32.dp)) {
+                                                Text("Are you sure you want to logout? We will miss you!", color = MaterialTheme.colorScheme.onSurface)
+                                                Row(
+                                                    Modifier
+                                                        .fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                ) {
+                                                    Button(
+                                                        colors = ButtonDefaults.filledTonalButtonColors(),
+                                                        onClick = {
+                                                            viewModel.logoutPopupOpened.value = false
+                                                        }
+                                                    ) {
+                                                        Text("No")
+                                                    }
+                                                    Button(
+                                                        colors = ButtonDefaults.filledTonalButtonColors(),
+                                                        onClick = {
+                                                            viewModel.clearAuthToken()
+                                                            startActivity(
+                                                                Intent(
+                                                                    this@MainActivity,
+                                                                    LoginActivity::class.java
+                                                                ).apply {
+                                                                    flags =
+                                                                        Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                                                })
+                                                        }
+                                                    ) {
+                                                        Text("Yes")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 // TODO: Clicking Account Icon Temporarily Logs User out. Replace with actual button
                                 IconButton(onClick = {
-                                    viewModel.clearAuthToken()
-                                    startActivity(
-                                        Intent(
-                                            this@MainActivity,
-                                            LoginActivity::class.java
-                                        ).apply {
-                                            flags =
-                                                Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                                        })
+                                    viewModel.logoutPopupOpened.value = true
                                 }) {
                                     Icon(
                                         Icons.Filled.AccountCircle,
