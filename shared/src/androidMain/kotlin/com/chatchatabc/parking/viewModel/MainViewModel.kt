@@ -16,6 +16,7 @@ class MainViewModel(
     val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
 ) : ViewModel() {
+    val logoutPopupOpened = MutableStateFlow(false)
     val parkingLot: MutableStateFlow<ParkingLot?> = MutableStateFlow(null)
 
     val isLoading = MutableStateFlow(true)
