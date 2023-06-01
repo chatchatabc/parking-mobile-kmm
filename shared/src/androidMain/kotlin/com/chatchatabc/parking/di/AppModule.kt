@@ -87,6 +87,7 @@ val MainModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ParkingAPI(get(), get(named("token"))) }
     single { UserAPI(get(), get(named("token"))) }
+    single { ProfileAPI(get(), get(named("token"))) }
     viewModel {
         MainViewModel(get(), get(), get(), get())
     }
