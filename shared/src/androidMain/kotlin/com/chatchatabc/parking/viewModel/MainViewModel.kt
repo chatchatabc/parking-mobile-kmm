@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.ParkingAPI
+import com.chatchatabc.parking.api.ProfileAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.model.ParkingLot
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 class MainViewModel(
     val userAPI: UserAPI,
     val parkingAPI: ParkingAPI,
+    val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
 ): ViewModel() {
     val parkingLot: MutableStateFlow<ParkingLot?> = MutableStateFlow(null)
@@ -36,7 +38,10 @@ class MainViewModel(
     }
 
     fun clearAuthToken() {
-        // Change activity to loginActivity
-        sharedPreferences.edit().remove("authToken").apply()
+        viewModelScope.launch {
+            // Change activity to loginActivity
+            profileAPI.logout()
+            sharedPreferences.edit().remove("authToken").apply()
+        }
     }
 }
