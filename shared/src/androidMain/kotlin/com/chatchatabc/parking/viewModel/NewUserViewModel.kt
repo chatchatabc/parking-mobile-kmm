@@ -36,14 +36,14 @@ class NewUserViewModel(
         isLoading.value = true
         viewModelScope.launch {
             val updateProfileResult = userAPI.updateProfile(dto)
-            if (!updateProfileResult.errors.isNullOrEmpty()) {
+            if (updateProfileResult.errors.isNotEmpty()) {
                 Log.d("ERROR", "Failed: ${updateProfileResult.errors[0].message ?: "Unknown error"}")
                 errors.value = mapOf("updateUser" to (updateProfileResult.errors[0].message ?: "Unknown error"))
                 return@launch
             }
 
             val getUserResult = userAPI.getUser()
-            if (!getUserResult.errors.isNullOrEmpty()) {
+            if (getUserResult.errors.isNotEmpty()) {
                 Log.d("ERROR", "Failed: ${getUserResult.errors[0].message ?: "Unknown error"}")
                 errors.value = mapOf("updateUser" to (getUserResult.errors[0].message ?: "Unknown error"))
                 return@launch
