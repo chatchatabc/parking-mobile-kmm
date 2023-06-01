@@ -34,5 +34,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.chatchatabc.parkingclient.android.NewUserActivity" />
+        <activity android:name="com.chatchatabc.parkingclient.android.NewVehicleActivity"
+            android:exported="true"/>
     </application>
 </manifest> 

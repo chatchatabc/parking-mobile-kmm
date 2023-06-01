@@ -7,6 +7,7 @@ import com.chatchatabc.parking.api.LoginAPI
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.api.ProfileAPI
 import com.chatchatabc.parking.api.UserAPI
+import com.chatchatabc.parking.api.VehicleAPI
 import com.chatchatabc.parking.httpClient
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
@@ -14,6 +15,7 @@ import com.chatchatabc.parking.viewModel.LoginViewModel
 import com.chatchatabc.parking.viewModel.MainViewModel
 import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
 import com.chatchatabc.parking.viewModel.NewUserViewModel
+import com.chatchatabc.parking.viewModel.NewVehicleViewModel
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.statement.bodyAsText
@@ -65,7 +67,7 @@ val AppModule = module {
 val LoginModule = module {
     includes(EncryptedSharedPreferencesModule)
     single { LoginAPI(get()) }
-    viewModel { LoginViewModel(get(), get()) }
+    viewModel { LoginViewModel(get(), get(), get()) }
 }
 
 val NewUserModule = module {
