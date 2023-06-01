@@ -21,7 +21,7 @@ enum class LoginType {
     MEMBER
 }
 
-class LoginViewModel(
+class LoginActivity(
     val api: LoginAPI,
     val sharedPreferences: SharedPreferences
 ): ViewModel() {
