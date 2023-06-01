@@ -4,8 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ApiResponse<T>(
-    var error: Boolean = false,
-    var message: String,
-    var data: T? = null,
-    var code: Int = 0
+    val data: T? = null,
+    val errors: List<ErrorElement>? = null
+)
+
+@Serializable
+data class ErrorElement(
+    val title: String?,
+    val message: String?
 )

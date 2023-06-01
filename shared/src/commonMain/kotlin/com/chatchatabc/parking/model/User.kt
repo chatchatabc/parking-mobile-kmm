@@ -3,8 +3,8 @@ package com.chatchatabc.parking.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Member(
-    val memberUuid: String,
+data class User(
+    val userUuid: String,
     val email: String?,
     val username: String?,
 //    val password: String?,

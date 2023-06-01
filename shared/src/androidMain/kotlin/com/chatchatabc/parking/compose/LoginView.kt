@@ -67,7 +67,7 @@ fun LoginView(
             onValueChange = { onPhoneChanged(it) },
             label = { Text("Phone Number") },
             isError = errors.containsKey("phone"),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             prefix = {
                 Text("+63", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             },

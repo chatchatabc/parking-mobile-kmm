@@ -36,6 +36,11 @@ import com.chatchatabc.parking.viewModel.LoginViewModel
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
+enum class LoginType {
+    ADMIN,
+    MEMBER
+}
+
 class LoginActivity : ComponentActivity() {
     val koinModule = loadKoinModules(LoginModule)
     val preferences: SharedPreferences by inject()
@@ -58,7 +63,7 @@ class LoginActivity : ComponentActivity() {
         setContent {
             val loginState by viewModel.uiState.collectAsState()
             val success by viewModel.isLoggedIn.collectAsState()
-            val errors by viewModel.errors.collectAsState()
+            val errors by viewModel.appErrors.collectAsState()
 
             LaunchedEffect(success) {
                 if (success) {
@@ -96,7 +101,7 @@ class LoginActivity : ComponentActivity() {
                                 ErrorCard(
                                     error = errors.values,
                                 ) {
-                                    viewModel.errors.value = emptyMap()
+                                    viewModel.appErrors.value = emptyMap()
                                 }
                             }
                         }
@@ -119,17 +124,17 @@ class LoginActivity : ComponentActivity() {
                                             .padding(32.dp),
                                         onPhoneChanged = {
                                             viewModel.phone.value = it
-                                            viewModel.errors.value =
-                                                viewModel.errors.value.filter { it.key != "phone" }
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "phone" }
                                         },
                                         onUsernameChanged = {
                                             viewModel.username.value = it
-                                            viewModel.errors.value = viewModel.errors.value.filter { it.key != "username" }
+                                            viewModel.appErrors.value = viewModel.appErrors.value.filter { it.key != "username" }
                                         },
                                         onTosChanged = {
                                             viewModel.tos.value = it
-                                            viewModel.errors.value =
-                                                viewModel.errors.value.filter { it.key != "tos" }
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "tos" }
                                         },
                                         onLogin = {
                                             viewModel.validateAndSubmitPhone(LoginType.ADMIN)
@@ -149,8 +154,8 @@ class LoginActivity : ComponentActivity() {
                                         },
                                         onOTPChanged = { otp ->
                                             viewModel.otp.value = otp
-                                            viewModel.errors.value =
-                                                viewModel.errors.value.filter { it.key != "otp" }
+                                            viewModel.appErrors.value =
+                                                viewModel.appErrors.value.filter { it.key != "otp" }
                                         },
                                         onOTPRefreshClicked = {
                                             viewModel.validateAndSubmitPhone(LoginType.ADMIN)
