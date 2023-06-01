@@ -11,6 +11,6 @@ class UserAPI(val client: HttpClient, token: Token?): com.chatchatabc.parking.ap
     suspend fun getUser(): ApiResponse<User> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
 
-    suspend fun updateProfile(payload: UpdateUserDTO): ApiResponse<User> =
+    suspend fun updateProfile(payload: UpdateUserDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
 }
