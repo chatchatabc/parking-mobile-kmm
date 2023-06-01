@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
+import com.chatchatabc.parking.compose.ErrorCard
 
 enum class CancelState{
     NONE,
@@ -42,6 +43,8 @@ enum class CancelState{
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WizardLayout(
+    errors: Map<String, String>,
+    onErrorDismiss: () -> Unit,
     title: String,
     subtext: String? = null,
     pages: Int,
@@ -58,8 +61,6 @@ fun WizardLayout(
 ) {
     val pagerState = rememberPagerState(initialPage = 0)
     val progress by animateFloatAsState(targetValue = (1f / (pages - 1)) * (page + 1))
-
-
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -95,8 +96,19 @@ fun WizardLayout(
                 .background(MaterialTheme.colorScheme.background),
             beyondBoundsPageCount = 1, userScrollEnabled = false,
         ) { page ->
-            Box {
-                content(page)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(32.dp)
+            ) {
+                errors["global"]?.let {
+                    ErrorCard(error = listOf(it)) {
+                        onErrorDismiss()
+                    }
+                }
+
+                Box {
+                    content(page)
+                }
             }
         }
 
@@ -107,7 +119,7 @@ fun WizardLayout(
                 .padding(32.dp, 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (pages != page) {
+            if (page < pages) {
                 OutlinedIconButton(onClick = {
                     onCancelStateChanged(CancelState.PROMPT)
                 }, colors = IconButtonDefaults.outlinedIconButtonColors()) {
@@ -115,7 +127,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page == 0 && pages != page) {
+            if (page > 0) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -129,7 +141,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page < pages-1) {
+            if (page < pages-2) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -147,27 +159,25 @@ fun WizardLayout(
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
-                        onSubmit()
-                    },
-                    enabled = true,
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
-                    Text("Save")
-                }
-            }
-
-            if (page == pages) {
-                Button(
-                    colors = ButtonDefaults.filledTonalButtonColors(),
-                    onClick = {
-                              onFinish()
+                        onFinish()
                     },
                     enabled = true,
                     modifier = Modifier
                         .weight(1f)
                 ) {
                     Text(finishCTAText)
+                }
+            }
+
+            if (page < pages-1) {
+                Button(
+                    colors = ButtonDefaults.filledTonalButtonColors(),
+                    onClick = { onSubmit() },
+                    enabled = true,
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Text("Submit")
                 }
             }
         }

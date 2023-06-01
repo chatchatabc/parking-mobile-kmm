@@ -1,6 +1,6 @@
 package com.chatchatabc.parking.compose.wizard
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -27,7 +27,7 @@ fun WizardTextField(
         singleLine = true,
         isError = errors.keys.contains("name"),
         supportingText = {
-            Row {
+            Column {
                 supportingText?.let {
                     Text(it, style = MaterialTheme.typography.bodySmall)
                 }
