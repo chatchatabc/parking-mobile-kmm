@@ -79,13 +79,12 @@ class LoginViewModel(
                     if (status.isSuccess()) {
                         val token = headers["X-Access-Token"]?.also {
                             Log.d("TOKEN", it)
-
-                            if (it == null) {
-                                appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
-                                return@launch
-                            }
-
                             sharedPreferences.edit().putString("authToken", it).apply()
+                        }
+
+                        if (token == null) {
+                            appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
+                            return@launch
                         }
 
                         isLoggedIn.value = true
