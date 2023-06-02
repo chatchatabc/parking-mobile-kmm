@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -61,7 +62,7 @@ class AccountActivity : ComponentActivity() {
                     topBar = {
                         TopAppBar(
                             title = {
-                                Text("Account")
+                                Text("Profile")
                             },
                             navigationIcon = {
                                 IconButton(onClick = {
@@ -145,15 +146,119 @@ class AccountActivity : ComponentActivity() {
                             .padding(it),
                         verticalArrangement = Arrangement.Center
                     ) {
+                        // Profile Photo
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Profile Photo")
+                        }
+
+                        // My Coupons
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("My Coupons")
+                        }
+
+                        // First Name
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("First Name")
+                        }
+
+                        // Last Name
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Last Name")
+                        }
+
+                        // Phone
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Phone")
+                        }
+
+                        // Email
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Email")
+                        }
+
+                        // Language
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Language")
+                        }
+
+                        // Feedback
+                        Button(
+                            onClick = {
+                                // TODO:
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
+                        ) {
+                            Text("Feedback")
+                        }
+
                         // Create Logout Button that is centered and width full
                         Button(
                             onClick = {
                                 viewModel.logoutPopupOpened.value = true
                             },
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors()
+                                .fillMaxWidth(),
+                            colors = ButtonDefaults.filledTonalButtonColors(),
+                            shape = RectangleShape
                         ) {
                             Text("Logout")
                         }
