@@ -5,28 +5,32 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- FIXME: android:usesCleartextTraffic must be FALSE for PRODUCTION -->
     <application
         android:name=".ParkingClientApplication"
         android:allowBackup="false"
         android:supportsRtl="true"
-        android:usesCleartextTraffic="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
 
-        <meta-data android:name="com.google.android.geo.API_KEY"
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDX-Gz9bDh6H5vFzuwnnnWeJIO55ZLTGP4" />
 
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-        </activity>
-        <activity android:name="com.chatchatabc.parkingclient.android.LoginActivity"
+            android:exported="true" />
+        <activity
+            android:name=".AccountActivity"
+            android:exported="true" />
+        <activity
+            android:name="com.chatchatabc.parkingclient.android.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -34,7 +38,8 @@
             </intent-filter>
         </activity>
         <activity android:name="com.chatchatabc.parkingclient.android.NewUserActivity" />
-        <activity android:name="com.chatchatabc.parkingclient.android.NewVehicleActivity"
-            android:exported="true"/>
+        <activity
+            android:name="com.chatchatabc.parkingclient.android.NewVehicleActivity"
+            android:exported="true" />
     </application>
 </manifest> 
