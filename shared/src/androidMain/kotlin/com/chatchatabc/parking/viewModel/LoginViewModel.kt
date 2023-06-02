@@ -81,7 +81,9 @@ class LoginViewModel(
                             return@launch
                         }
 
-                        UserAPI(loginAPI.httpClient, token).getUser().let {
+                        UserAPI(loginAPI.httpClient).apply {
+                            setToken(token)
+                        }.getUser().let {
                             if (it.errors.isEmpty()) {
                                 hasUserDetails = it.data!!.firstName != null
                                 isLoggedIn.value = true

@@ -3,7 +3,6 @@ package com.chatchatabc.parking.viewModel
 import android.app.Application
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.model.ParkingLotImage
@@ -14,7 +13,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): ViewModel() {
+class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): BaseViewModel() {
+    init {
+        setToken(api)
+    }
     var page = MutableStateFlow(0)
 
     var errors = MutableStateFlow(mapOf<String, String>())

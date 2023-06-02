@@ -1,6 +1,5 @@
 package com.chatchatabc.parking.api
 
-import com.chatchatabc.parking.Config
 import com.chatchatabc.parking.Config.BASE_URL
 import com.chatchatabc.parking.model.pagination.Pagination
 import com.chatchatabc.parking.model.response.ApiResponse
@@ -23,7 +22,13 @@ import io.ktor.http.contentType
 // TODO: Reduce code duplication
 // TODO: Maybe think of a better implementation for this one.
 // TODO: Better error handling
-abstract class AbstractAPI(val httpClient: HttpClient, private val token: String? = null) {
+abstract class AbstractAPI(val httpClient: HttpClient) {
+    private var token: String = ""
+
+    fun setToken(token: String) {
+        this.token = token
+    }
+
     val config = com.chatchatabc.parking.Config
 
     suspend inline fun <reified T> makeRequest(

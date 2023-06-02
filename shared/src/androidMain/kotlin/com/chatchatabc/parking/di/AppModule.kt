@@ -73,23 +73,22 @@ val LoginModule = module {
 val NewUserModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
     single {
-        UserAPI(get(), get(named("token")))
+        UserAPI(get())
     }
-
     viewModel { NewUserViewModel(get(), get()) }
 }
 
 val NewParkingLotModule = module {
     includes(TokenModule)
-    single { ParkingAPI(get(), get(named("token"))) }
+    single { ParkingAPI(get()) }
     viewModel { NewParkingLotViewModel(get(), get()) }
 }
 
 val MainModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
-    single { ParkingAPI(get(), get(named("token"))) }
-    single { UserAPI(get(), get(named("token"))) }
-    single { ProfileAPI(get(), get(named("token"))) }
+    single { ParkingAPI(get()) }
+    single { UserAPI(get()) }
+    single { ProfileAPI(get()) }
     viewModel {
         MainViewModel(get(), get(), get(), get())
     }
@@ -104,9 +103,9 @@ val ParkingRealmModule = module {
 
 val MainMapModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
-    single { ProfileAPI(get(), get(named("token"))) }
-    single { ParkingAPI(get(), get(named("token"))) }
-    single { VehicleAPI(get(), get(named("token"))) }
+    single { ProfileAPI(get()) }
+    single { ParkingAPI(get()) }
+    single { VehicleAPI(get()) }
     viewModel {
         ClientMainViewModel(get(), get(), get(), get(named("parkingRealm")), get())
     }
@@ -114,7 +113,7 @@ val MainMapModule = module {
 
 val NewVehicleModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
-    single { VehicleAPI(get(), get(named("token"))) }
+    single { VehicleAPI(get()) }
     viewModel {
         NewVehicleViewModel(get())
     }

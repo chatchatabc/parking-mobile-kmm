@@ -2,7 +2,6 @@ package com.chatchatabc.parking.viewModel
 
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.model.dto.UpdateUserDTO
@@ -14,7 +13,11 @@ import kotlinx.serialization.json.Json
 class NewUserViewModel(
     val userAPI: UserAPI,
     val preferences: SharedPreferences
-): ViewModel() {
+): BaseViewModel() {
+    init {
+        setToken(userAPI)
+    }
+
     val Json = Json { ignoreUnknownKeys = true }
 
     val firstName = MutableStateFlow("")
@@ -22,7 +25,6 @@ class NewUserViewModel(
     val email = MutableStateFlow("")
 
     val uiState: MutableStateFlow<NewUserState> = MutableStateFlow(NewUserState.INPUT)
-    val isLoading = MutableStateFlow(false)
 
     val errors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
 

@@ -1,7 +1,6 @@
 package com.chatchatabc.parking.viewModel
 
 import android.content.SharedPreferences
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.api.ProfileAPI
@@ -15,11 +14,13 @@ class MainViewModel(
     val parkingAPI: ParkingAPI,
     val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
-) : ViewModel() {
+) : BaseViewModel() {
+    init {
+        setToken(parkingAPI, profileAPI)
+    }
+
     val logoutPopupOpened = MutableStateFlow(false)
     val parkingLot: MutableStateFlow<ParkingLot?> = MutableStateFlow(null)
-
-    val isLoading = MutableStateFlow(true)
 
     fun getParkingLot() {
         isLoading.value = true

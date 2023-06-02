@@ -11,7 +11,7 @@ import io.ktor.http.HttpMethod
 
 typealias Token = String
 
-class ParkingAPI(val client: HttpClient, token: Token?): AbstractAPI(client, token) {
+class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
     val ENDPOINT = "/api/parking-lot"
 
     suspend fun setToPending(): ApiResponse<ParkingLot> =

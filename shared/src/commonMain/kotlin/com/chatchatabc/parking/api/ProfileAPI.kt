@@ -4,7 +4,7 @@ import com.chatchatabc.parking.model.response.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 
-class ProfileAPI(val client: HttpClient, token: Token?): com.chatchatabc.parking.api.AbstractAPI(client, token) {
+class ProfileAPI(val client: HttpClient): AbstractAPI(client) {
     val ENDPOINT = "/api/profile"
 
     suspend fun logout(): ApiResponse<Unit> =

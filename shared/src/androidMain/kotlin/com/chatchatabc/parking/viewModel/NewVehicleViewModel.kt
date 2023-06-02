@@ -1,7 +1,7 @@
 package com.chatchatabc.parking.viewModel
 
-import com.chatchatabc.parking.api.NewVehicleDTO
 import com.chatchatabc.parking.api.VehicleAPI
+import com.chatchatabc.parking.model.dto.NewVehicleDTO
 import kotlinx.coroutines.flow.MutableStateFlow
 
 enum class VehicleType {
@@ -17,6 +17,10 @@ class NewVehicleViewModel(val vehicleApi: VehicleAPI): BaseViewModel() {
     var type = MutableStateFlow(VehicleType.NONE)
 
     val errors = MutableStateFlow(mapOf<String, String>())
+
+    init {
+        setToken(vehicleApi)
+    }
 
     fun validateAndSubmit() {
         validations.forEach { (currentPage, validation) ->

@@ -1,4 +1,4 @@
-package com.chatchatabc.parking.api
+package com.chatchatabc.parking.model.dto
 
 import kotlinx.serialization.Serializable
 

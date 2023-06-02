@@ -6,7 +6,7 @@ import com.chatchatabc.parking.model.response.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 
-class UserAPI(val client: HttpClient, token: Token?): com.chatchatabc.parking.api.AbstractAPI(client, token) {
+class UserAPI(val client: HttpClient): AbstractAPI(client) {
     val ENDPOINT = "/api/user"
     suspend fun getUser(): ApiResponse<User> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
