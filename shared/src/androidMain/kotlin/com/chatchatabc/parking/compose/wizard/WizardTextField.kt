@@ -25,7 +25,7 @@ fun WizardTextField(
         },
         label = { Text(label) },
         singleLine = true,
-        isError = errors.keys.contains("name"),
+        isError = errors.keys.contains(keyName),
         supportingText = {
             Column {
                 supportingText?.let {

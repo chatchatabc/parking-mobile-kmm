@@ -286,7 +286,7 @@ class NewParkingLotActivity : LocationActivity() {
                                 // Name Input
                                 WizardTextField(
                                     value = parkingLotName,
-                                    keyName = "name",
+                                    keyName = "parkingLotName",
                                     onValueChange = {
                                         viewModel.parkingLotName.value = it
                                         viewModel.errors.value =
@@ -298,7 +298,7 @@ class NewParkingLotActivity : LocationActivity() {
                                 // Address Input
                                 WizardTextField(
                                     value = parkingLotAddress,
-                                    keyName = "address",
+                                    keyName = "parkingLotAddress",
                                     onValueChange = {
                                         viewModel.parkingLotAddress.value = it
                                         viewModel.errors.value =
