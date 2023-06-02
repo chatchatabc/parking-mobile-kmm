@@ -13,12 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 // TODO: Better error handling
-
-enum class LoginType {
-    ADMIN,
-    MEMBER
-}
-
 class LoginViewModel(
     val loginAPI: LoginAPI,
     val sharedPreferences: SharedPreferences,
@@ -87,8 +81,6 @@ class LoginViewModel(
                             return@launch
                         }
 
-                        isLoggedIn.value = true
-
                         UserAPI(loginAPI.httpClient, token).getUser().let {
                             if (it.errors.isEmpty()) {
                                 hasUserDetails = it.data!!.firstName != null
@@ -109,6 +101,11 @@ class LoginViewModel(
             isLoading.value = false
         }
     }
+}
+
+enum class LoginType {
+    ADMIN,
+    MEMBER
 }
 
 enum class LoginState {
