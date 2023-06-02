@@ -24,9 +24,11 @@ class ClientMainViewModel(
     val vehicleAPI: VehicleAPI,
     val parkingRealm: Realm,
     val sharedPreferences: SharedPreferences
-): BaseViewModel() {
+) : BaseViewModel() {
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
+    val currentPage = MutableStateFlow(0)
+    val logoutPopupOpened = MutableStateFlow(false)
 
     val isSelectingVehicle = MutableStateFlow(false)
     val selectedVehicle: MutableStateFlow<Vehicle?> = MutableStateFlow(null)
@@ -45,7 +47,8 @@ class ClientMainViewModel(
                                     name = it.name!!
                                     latitude = it.latitude
                                     longitude = it.longitude
-                                }},
+                                }
+                            },
                             updatePolicy = UpdatePolicy.ALL
                         )
                     }
@@ -111,7 +114,12 @@ class ClientMainViewModel(
             .render(cellSize, margin = cellSize)
             .writeImage(outputStream)
         // Create bitmap from OutputStream
-        qrCode.value = BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
+        qrCode.value =
+            BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
         isLoadingQRCode.value = false
+    }
+
+    fun setCurrentPage(page: Int) {
+        currentPage.value = page
     }
 }
