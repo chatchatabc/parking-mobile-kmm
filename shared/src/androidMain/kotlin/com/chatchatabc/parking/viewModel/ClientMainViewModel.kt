@@ -25,7 +25,6 @@ class ClientMainViewModel(
     val parkingRealm: Realm,
     val sharedPreferences: SharedPreferences
 ): BaseViewModel() {
-    val logoutPopupOpened = MutableStateFlow(false)
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
 
