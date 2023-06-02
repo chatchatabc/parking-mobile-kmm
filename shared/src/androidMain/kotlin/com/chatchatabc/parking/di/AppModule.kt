@@ -10,6 +10,7 @@ import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.api.VehicleAPI
 import com.chatchatabc.parking.httpClient
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
+import com.chatchatabc.parking.viewModel.AccountViewModel
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parking.viewModel.LoginViewModel
 import com.chatchatabc.parking.viewModel.MainViewModel
@@ -116,5 +117,13 @@ val NewVehicleModule = module {
     single { VehicleAPI(get()) }
     viewModel {
         NewVehicleViewModel(get())
+    }
+}
+
+val AccountModule = module {
+    includes(TokenModule, EncryptedSharedPreferencesModule)
+    single { ProfileAPI(get()) }
+    viewModel {
+        AccountViewModel(get(), get())
     }
 }
