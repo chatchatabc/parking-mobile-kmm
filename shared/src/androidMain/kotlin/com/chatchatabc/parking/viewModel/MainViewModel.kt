@@ -41,6 +41,7 @@ class MainViewModel(
     fun clearAuthToken() {
         viewModelScope.launch {
             // Change activity to loginActivity
+            parkingLot.value = null
             sharedPreferences.edit().remove("authToken").apply()
             profileAPI.logout()
         }
