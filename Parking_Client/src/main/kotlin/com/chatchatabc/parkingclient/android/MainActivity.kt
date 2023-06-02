@@ -149,8 +149,8 @@ class MainActivity : LocationActivity() {
                                             )
                                         )
                                     },
-                                    icon = { Icon(Icons.Outlined.AccountCircle, "My Account") },
-                                    label = { Text("Account") }
+                                    icon = { Icon(Icons.Outlined.AccountCircle, "My Profile") },
+                                    label = { Text("Me") }
                                 )
                             }
                         }
