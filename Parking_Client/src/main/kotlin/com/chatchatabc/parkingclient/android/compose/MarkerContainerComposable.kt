@@ -1,4 +1,4 @@
-package com.chatchatabc.parkingclient.android.composable
+package com.chatchatabc.parkingclient.android.compose
 
 import android.content.Context
 import android.graphics.Bitmap

@@ -1,4 +1,4 @@
-package com.chatchatabc.parkingclient.android.composable
+package com.chatchatabc.parkingclient.android.compose
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

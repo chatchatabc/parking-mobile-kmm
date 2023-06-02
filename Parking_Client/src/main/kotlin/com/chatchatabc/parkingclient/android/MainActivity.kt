@@ -68,8 +68,8 @@ import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
-import com.chatchatabc.parkingclient.android.composable.MapViewComposable
-import com.chatchatabc.parkingclient.android.composable.SelectVehicleSheet
+import com.chatchatabc.parkingclient.android.compose.MapViewComposable
+import com.chatchatabc.parkingclient.android.compose.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
