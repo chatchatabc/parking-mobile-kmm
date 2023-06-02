@@ -138,64 +138,15 @@ class MainActivity : LocationActivity() {
                                     label = { Text("Map") }
                                 )
 
-                                val logoutPopupOpened by viewModel.logoutPopupOpened.collectAsState()
-
-                                // Logout confirmation alert dialog
-                                if (logoutPopupOpened) {
-                                    AlertDialog(onDismissRequest = {
-                                        viewModel.logoutPopupOpened.value = false
-                                    }) {
-                                        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.50f)
-
-                                        Box(
-                                            Modifier
-                                                .clip(RoundedCornerShape(32.dp))
-                                                .fillMaxWidth()
-                                                .background(MaterialTheme.colorScheme.surface),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp), modifier = Modifier.padding(32.dp)) {
-                                                Text("Are you sure you want to logout? We will miss you!", color = MaterialTheme.colorScheme.onSurface)
-                                                Row(
-                                                    Modifier
-                                                        .fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                                ) {
-                                                    Button(
-                                                        colors = ButtonDefaults.filledTonalButtonColors(),
-                                                        onClick = {
-                                                            viewModel.logoutPopupOpened.value = false
-                                                        }
-                                                    ) {
-                                                        Text("No")
-                                                    }
-                                                    Button(
-                                                        colors = ButtonDefaults.filledTonalButtonColors(),
-                                                        onClick = {
-                                                            viewModel.clearAuthToken()
-                                                            startActivity(
-                                                                Intent(
-                                                                    this@MainActivity,
-                                                                    LoginActivity::class.java
-                                                                ).apply {
-                                                                    flags =
-                                                                        Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                                                                })
-                                                        }
-                                                    ) {
-                                                        Text("Yes")
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                // TODO: Clicking Account Icon Temporarily Logs User out. Replace with actual button
                                 NavigationBarItem(
                                     selected = false,
                                     onClick = {
-                                        viewModel.logoutPopupOpened.value = true
+                                        startActivity(
+                                            Intent(
+                                                this@MainActivity,
+                                                AccountActivity::class.java
+                                            )
+                                        )
                                     },
                                     icon = { Icon(Icons.Outlined.AccountCircle, "My Account") },
                                     label = { Text("Account") }
