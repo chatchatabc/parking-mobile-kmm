@@ -13,7 +13,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
@@ -40,9 +38,8 @@ import androidx.compose.material.icons.filled.Motorcycle
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCar
+import androidx.compose.material.icons.outlined.Report
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -65,16 +62,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.content.ContextCompat
 import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
@@ -128,14 +122,21 @@ class MainActivity : LocationActivity() {
                                 NavigationBarItem(
                                     selected = true,
                                     onClick = { /*TODO*/ },
-                                    icon = { Icon(Icons.Filled.Map, "Map") },
-                                    label = { Text("Map") }
+                                    icon = { Icon(Icons.Filled.Map, "Parking") },
+                                    label = { Text("Parking") }
                                 )
                                 NavigationBarItem(
                                     selected = false,
                                     onClick = { /*TODO*/ },
-                                    icon = { Icon(Icons.Outlined.DirectionsCar, "Vehicles") },
-                                    label = { Text("Map") }
+                                    icon = { Icon(Icons.Outlined.DirectionsCar, "Jeepney") },
+                                    label = { Text("Jeepney") }
+                                )
+
+                                NavigationBarItem(
+                                    selected = false,
+                                    onClick = { /*TODO*/ },
+                                    icon = { Icon(Icons.Outlined.Report, "Report") },
+                                    label = { Text("Report") }
                                 )
 
                                 NavigationBarItem(
@@ -154,7 +155,7 @@ class MainActivity : LocationActivity() {
                             }
                         }
                     ) { padding ->
-                        var hasPermission by remember { mutableStateOf(false)}
+                        var hasPermission by remember { mutableStateOf(false) }
                         withLocationPermission {
                             hasPermission = true
                         }
@@ -173,9 +174,11 @@ class MainActivity : LocationActivity() {
 
                         val vehicleSelectorShown by viewModel.isSelectingVehicle.collectAsState()
 
-                        Box(modifier = Modifier
-                            .fillMaxSize()
-                            .padding(padding)) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(padding)
+                        ) {
                             FloatingActionButton(
                                 modifier = Modifier
                                     .align(Alignment.BottomEnd)
@@ -226,8 +229,14 @@ class MainActivity : LocationActivity() {
                                             .fillMaxWidth()
                                     ) {
                                         Box(Modifier.padding(16.dp)) {
-                                            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                                Text("Parking QR Code", style = MaterialTheme.typography.labelLarge)
+                                            Column(
+                                                Modifier.fillMaxWidth(),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Text(
+                                                    "Parking QR Code",
+                                                    style = MaterialTheme.typography.labelLarge
+                                                )
                                                 Text(
                                                     selectedVehicle?.plateNumber ?: "",
                                                     style = MaterialTheme.typography.headlineLarge,
@@ -280,7 +289,8 @@ fun MapView(
     modifier: Modifier = Modifier,
     pins: List<ParkingLotRealmObject>,
     onMapLoaded: () -> Unit,
-    onMapMoved: (LatLngBounds) -> Unit) {
+    onMapMoved: (LatLngBounds) -> Unit
+) {
     val coroutineScope = rememberCoroutineScope()
     val camera = rememberCameraPositionState()
 
@@ -306,14 +316,16 @@ fun MapView(
                 myLocationButtonEnabled = false,
                 zoomControlsEnabled = false
             ),
-            onMyLocationClick = {location ->
+            onMyLocationClick = { location ->
                 coroutineScope.launch {
-                    camera.animate(CameraUpdateFactory.newCameraPosition(
-                        CameraPosition.builder(camera.position)
-                            .target(location.toLatLng())
-                            .zoom(if (camera.position.zoom < 15) 15f else camera.position.zoom)
-                            .build()
-                    ), 1500)
+                    camera.animate(
+                        CameraUpdateFactory.newCameraPosition(
+                            CameraPosition.builder(camera.position)
+                                .target(location.toLatLng())
+                                .zoom(if (camera.position.zoom < 15) 15f else camera.position.zoom)
+                                .build()
+                        ), 1500
+                    )
                 }
             },
             onMapLoaded = {
@@ -354,13 +366,22 @@ fun MarkerContainer(
 
         Marker(state = marker, icon = icon)
 
-        Circle(center = marker.position, radius = 20.0, fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+        Circle(
+            center = marker.position,
+            radius = 20.0,
+            fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+        )
     }
 }
 
 fun Location.toLatLng() = LatLng(latitude, longitude)
 
-private fun createCustomMarkerBitmap(name: String, subtext: String, context: Context, color: Int): Bitmap {
+private fun createCustomMarkerBitmap(
+    name: String,
+    subtext: String,
+    context: Context,
+    color: Int
+): Bitmap {
     val drawable = ContextCompat.getDrawable(context, R.drawable.parking_icon)
     val iconWidth = drawable?.intrinsicWidth ?: 0
     val iconHeight = drawable?.intrinsicHeight ?: 0
@@ -458,7 +479,10 @@ fun SelectVehicleSheet(
                     },
                     colors = CardDefaults.outlinedCardColors()
                 ) {
-                    Row(Modifier.padding(16.dp, 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        Modifier.padding(16.dp, 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             Icons.Filled.Add,
                             contentDescription = "Add Vehicle",
@@ -469,7 +493,7 @@ fun SelectVehicleSheet(
                     }
                 }
             }
-            items(vehicles, key = { item -> item.vehicleUuid }) {vehicle ->
+            items(vehicles, key = { item -> item.vehicleUuid }) { vehicle ->
                 VehicleItem(vehicle = vehicle) {
                     onVehicleSelected(it)
 //                    coroutineScope.launch { modalSheetState.hide() }
@@ -505,7 +529,10 @@ fun VehicleItem(vehicle: Vehicle, onClick: (Vehicle) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(vehicle.name, style = MaterialTheme.typography.titleMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
                     if (vehicle.type.toEnum<VehicleType>() == VehicleType.CAR) Icons.Filled.DirectionsCar else Icons.Filled.Motorcycle,
                     contentDescription = "Vehicle Type",
