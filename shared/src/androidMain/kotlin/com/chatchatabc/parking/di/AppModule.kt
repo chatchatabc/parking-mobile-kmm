@@ -106,8 +106,9 @@ val MainMapModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
     single { ProfileAPI(get(), get(named("token"))) }
     single { ParkingAPI(get(), get(named("token"))) }
+    single { VehicleAPI(get(), get(named("token"))) }
     viewModel {
-        ClientMainViewModel(get(), get(), get(named("parkingRealm")), get())
+        ClientMainViewModel(get(), get(), get(), get(named("parkingRealm")), get())
     }
 }
 

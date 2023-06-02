@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +40,6 @@ class NewVehicleActivity: ComponentActivity() {
             val name by viewModel.name.collectAsState()
             val platenumber by viewModel.platenumber.collectAsState()
             val type by viewModel.type.collectAsState()
-            var isCancelPromptShown by rememberSaveable { mutableStateOf(false) }
             val errors by viewModel.errors.collectAsState()
 
             var cancelState by rememberSaveable { mutableStateOf(CancelState.NONE) }
@@ -133,13 +131,4 @@ class NewVehicleActivity: ComponentActivity() {
             }
         }
     }
-}
-
-@Composable
-fun NewVehicle(
-    errors: Map<String, String>,
-    name: String,
-    platenumber: String,
-) {
-
 }

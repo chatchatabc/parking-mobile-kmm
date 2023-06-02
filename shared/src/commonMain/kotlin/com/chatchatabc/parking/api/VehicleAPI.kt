@@ -1,6 +1,7 @@
 package com.chatchatabc.parking.api
 
 import com.chatchatabc.parking.model.Vehicle
+import com.chatchatabc.parking.model.pagination.Page
 import com.chatchatabc.parking.model.response.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
@@ -11,6 +12,6 @@ class VehicleAPI(val client: HttpClient, token: Token?): AbstractAPI(client, tok
     suspend fun register(payload: NewVehicleDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Post, "$ENDPOINT/register", payload)
 
-    suspend fun getAllVehicles(): ApiResponse<List<Vehicle>> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get-my-vehicles")
+    suspend fun getAllVehicles(): ApiResponse<Page<Vehicle>> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/get-my-vehicles?limit=1000")
 }
