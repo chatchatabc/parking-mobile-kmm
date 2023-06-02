@@ -29,6 +29,10 @@
             android:name=".NewParkingLotActivity"
             android:exported="true" />
         <activity
+            android:name=".AccountActivity"
+            android:exported="true" />
+
+        <activity
             android:name=".LoginActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
