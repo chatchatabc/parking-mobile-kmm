@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +28,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
@@ -189,37 +187,7 @@ class NewParkingLotActivity : LocationActivity() {
 
         setContent {
             AppTheme {
-                val currentPage by viewModel.page.collectAsState()
-                val pagerState = rememberPagerState()
-                val progress by animateFloatAsState(
-                    targetValue = 1f / 4 * (currentPage + 1),
-                    label = "Wizard Progress Bar"
-                )
-
                 Column(modifier = Modifier.fillMaxSize()) {
-//                    Box(
-//                        Modifier
-//                            .fillMaxWidth()
-//                            .background(MaterialTheme.colorScheme.primaryContainer)
-//                            .padding(32.dp, 16.dp)
-//                    ) {
-//                        Text(
-//                            text = "Add a new parking lot",
-//                            style = MaterialTheme.typography.headlineLarge,
-//                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-//                            modifier = Modifier.fillMaxWidth(0.75f)
-//                        )
-//                    }
-
-//                    LaunchedEffect(currentPage) {
-//                        pagerState.animateScrollToPage(currentPage)
-//                    }
-//
-//                    LinearProgressIndicator(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        progress = progress
-//                    )
-
                     val page by viewModel.page.collectAsState()
                     var cancelState by rememberSaveable { mutableStateOf(CancelState.NONE) }
                     val parkingLotName by viewModel.parkingLotName.collectAsState()
@@ -249,8 +217,7 @@ class NewParkingLotActivity : LocationActivity() {
                                 viewModel.page.value += 1
                                 if (page == 0) {
                                     viewModel.createDraft()
-                                }
-                                else {
+                                } else {
                                     viewModel.saveDraft()
                                 }
                             }

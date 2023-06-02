@@ -35,11 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import com.chatchatabc.parking.compose.ErrorCard
 
-enum class CancelState{
+enum class CancelState {
     NONE,
     PROMPT,
     CONFIRM
 }
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun WizardLayout(
@@ -127,7 +128,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page > 0 && pages < page - 2) {
+            if (page in 1 until pages - 1) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -141,7 +142,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page < pages-2) {
+            if (page < pages - 2) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -155,7 +156,7 @@ fun WizardLayout(
                 }
             }
 
-            if (page == pages-1) {
+            if (page == pages - 1) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = {
@@ -169,7 +170,9 @@ fun WizardLayout(
                 }
             }
 
-            if (page >= 0 && page < pages-1) {
+            // Last page
+            // However there is still a confirmation page after this
+            if (page == pages - 2) {
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = { onSubmit() },
