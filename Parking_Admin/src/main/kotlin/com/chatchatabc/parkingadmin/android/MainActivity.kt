@@ -19,8 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -98,7 +96,7 @@ class MainActivity : ComponentActivity() {
                                     Icon(
                                         Icons.Filled.Settings,
                                         contentDescription = "Notifications",
-           x                             Modifier.size(24.dp)
+                                        Modifier.size(24.dp)
                                     )
                                 }
                                 IconButton(onClick = { /* TODO */ }) {
