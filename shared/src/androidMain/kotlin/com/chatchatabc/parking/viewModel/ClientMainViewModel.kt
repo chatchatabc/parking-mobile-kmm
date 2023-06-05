@@ -24,7 +24,7 @@ class ClientMainViewModel(
     val vehicleAPI: VehicleAPI,
     val parkingRealm: Realm,
     val sharedPreferences: SharedPreferences
-): BaseViewModel(parkingAPI, profileAPI, vehicleAPI) {
+) : BaseViewModel(parkingAPI, profileAPI, vehicleAPI) {
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val currentPage = MutableStateFlow(0)
@@ -114,7 +114,8 @@ class ClientMainViewModel(
             .render(cellSize, margin = cellSize)
             .writeImage(outputStream)
         // Create bitmap from OutputStream
-        qrCode.value = BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
+        qrCode.value =
+            BitmapFactory.decodeByteArray(outputStream.toByteArray(), 0, outputStream.size())
         isLoadingQRCode.value = false
     }
 

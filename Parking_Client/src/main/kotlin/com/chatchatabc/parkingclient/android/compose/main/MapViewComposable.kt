@@ -25,7 +25,7 @@ fun MapViewComposable(
     modifier: Modifier = Modifier,
     pins: List<ParkingLotRealmObject>,
     onMapLoaded: () -> Unit,
-    onMapMoved: (LatLngBounds) -> Unit
+    onMapMoved: (LatLngBounds) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val camera = rememberCameraPositionState()

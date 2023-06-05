@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -24,8 +25,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.DirectionsCar
 import androidx.compose.material.icons.outlined.Report
@@ -38,9 +41,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -70,8 +76,8 @@ import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parkingclient.android.compose.account.GenericMenuItemComposable
-import com.chatchatabc.parkingclient.android.compose.main.MapViewComposable
 import com.chatchatabc.parkingclient.android.compose.account.MenuSubtextComposable
+import com.chatchatabc.parkingclient.android.compose.main.MapViewComposable
 import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
 import org.koin.android.ext.android.inject
@@ -181,15 +187,76 @@ class MainActivity : LocationActivity() {
                             when (page) {
                                 // Parking Page
                                 0 -> {
-                                    if (hasPermission) {
-                                        MapViewComposable(
-                                            pins = visibleParkingLots,
-                                            modifier = Modifier.padding(padding),
-                                            onMapLoaded = {
-                                                viewModel.syncParkingLots()
-                                            },
+                                    var textValue by remember { mutableStateOf("") }
+                                    Column(
+                                        // Primary background color
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        // Add a search bar text field with a search icon and search button
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp, 16.dp, 16.dp, 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
                                         ) {
-                                            viewModel.getParkingLotsInRange(it)
+                                            OutlinedTextField(
+                                                singleLine = true,
+                                                value = textValue,
+                                                onValueChange = { newValue ->
+                                                    textValue = newValue
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f),
+                                                // rounded corners
+                                                shape = RoundedCornerShape(16.dp),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        Icons.Filled.Search,
+                                                        "Search",
+                                                        modifier = Modifier
+                                                            .padding(end = 8.dp)
+                                                    )
+                                                },
+                                                colors = OutlinedTextFieldDefaults.colors(
+                                                    unfocusedContainerColor = Color.LightGray,
+                                                    focusedContainerColor = Color.White,
+                                                    unfocusedLeadingIconColor = Color.Gray,
+                                                    focusedLeadingIconColor = Color.Black,
+                                                    unfocusedTextColor = Color.White,
+                                                    focusedTextColor = Color.Black,
+                                                    unfocusedTrailingIconColor = Color.Gray,
+                                                    focusedTrailingIconColor = Color.Black,
+                                                    unfocusedBorderColor = Color.Transparent,
+                                                    focusedBorderColor = Color.Transparent
+                                                ),
+                                                trailingIcon = {
+                                                    IconButton(onClick = {}) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.Check,
+                                                            contentDescription = "Search",
+                                                            modifier = Modifier.size(24.dp)
+                                                        )
+                                                    }
+                                                },
+                                                placeholder = {
+                                                    Text("Search")
+                                                }
+                                            )
+                                        }
+                                        if (hasPermission) {
+                                            MapViewComposable(
+                                                pins = visibleParkingLots,
+                                                modifier = Modifier
+                                                    .padding(16.dp, 32.dp)
+                                                    .clip(RoundedCornerShape(16.dp)),
+                                                onMapLoaded = {
+                                                    viewModel.syncParkingLots()
+                                                },
+                                            ) {
+                                                viewModel.getParkingLotsInRange(it)
+                                            }
                                         }
                                     }
 
