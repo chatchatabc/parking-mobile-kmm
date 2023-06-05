@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -28,7 +30,20 @@ fun GenericMenuItemComposable(
             .fillMaxWidth()
             .background(Color.White)
     ) {
-        Row(Modifier.padding(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier
+                .padding(4.dp)
+                .drawBehind {
+                    val padding = size.width * 0.05f // 5% padding
+                    drawLine(
+                        color = Color.Black,
+                        start = Offset(x = padding, y = size.height - 1.dp.toPx()),
+                        end = Offset(x = size.width - padding, y = size.height - 1.dp.toPx()),
+                        strokeWidth = 0.5.dp.toPx()
+                    )
+                },
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 label,
                 color = Color.Black,

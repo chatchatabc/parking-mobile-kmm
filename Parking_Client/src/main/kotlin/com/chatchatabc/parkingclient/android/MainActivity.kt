@@ -466,11 +466,18 @@ class MainActivity : LocationActivity() {
                                                     viewModel.logoutPopupOpened.value = true
                                                 },
                                                 modifier = Modifier
-                                                    .fillMaxWidth(),
+                                                    .fillMaxWidth()
+                                                    .padding(top = 32.dp),
                                                 colors = ButtonDefaults.filledTonalButtonColors(),
                                                 shape = RectangleShape
                                             ) {
-                                                Text("Logout")
+                                                Text(
+                                                    "Logout",
+                                                    // Red font color
+                                                    color = Color.Red,
+                                                    // Biggish font size
+                                                    fontSize = MaterialTheme.typography.bodyLarge.fontSize
+                                                )
                                             }
                                         }
                                     }
