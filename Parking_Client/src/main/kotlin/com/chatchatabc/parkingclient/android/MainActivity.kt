@@ -23,7 +23,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
@@ -292,10 +291,38 @@ class MainActivity : LocationActivity() {
                                 }
 
                                 // Jeepney Page
-                                1 -> {}
+                                1 -> {
+                                    // TODO: Implement Page
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .wrapContentSize(Alignment.Center)
+                                    ) {
+                                        Text(
+                                            text = "Page under construction",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentSize(Alignment.Center)
+                                        )
+                                    }
+                                }
 
                                 // Report Page
-                                2 -> {}
+                                2 -> {
+                                    // TODO: Implement Page
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .wrapContentSize(Alignment.Center)
+                                    ) {
+                                        Text(
+                                            text = "Page under construction",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentSize(Alignment.Center)
+                                        )
+                                    }
+                                }
 
                                 // Me page
                                 3 -> {
