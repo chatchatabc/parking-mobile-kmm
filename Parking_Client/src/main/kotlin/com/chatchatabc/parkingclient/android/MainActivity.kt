@@ -72,6 +72,7 @@ import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parkingclient.android.compose.account.GenericMenuItemComposable
 import com.chatchatabc.parkingclient.android.compose.account.MenuSubtextComposable
 import com.chatchatabc.parkingclient.android.compose.main.MapViewComposable
+import com.chatchatabc.parkingclient.android.compose.main.ParkingLotHighlightComposable
 import com.chatchatabc.parkingclient.android.compose.main.SearchBarComposable
 import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
@@ -187,7 +188,10 @@ class MainActivity : LocationActivity() {
                                         // Primary background color
                                         modifier = Modifier
                                             .fillMaxSize()
+                                            .verticalScroll(rememberScrollState())
                                             .background(MaterialTheme.colorScheme.primary)
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
                                     ) {
                                         // Search Bar
                                         SearchBarComposable(
@@ -196,12 +200,15 @@ class MainActivity : LocationActivity() {
                                                 textValue = newValue
                                             }
                                         )
+                                        // Parking Lot Highlights
+                                        ParkingLotHighlightComposable()
+                                        // Map
                                         if (hasPermission) {
                                             MapViewComposable(
                                                 pins = visibleParkingLots,
                                                 modifier = Modifier
-                                                    .padding(16.dp, 32.dp)
-                                                    .clip(RoundedCornerShape(16.dp)),
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .weight(1f),
                                                 onMapLoaded = {
                                                     viewModel.syncParkingLots()
                                                 },

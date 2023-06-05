@@ -26,8 +26,7 @@ fun SearchBarComposable(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp, 16.dp, 16.dp, 8.dp),
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         OutlinedTextField(
