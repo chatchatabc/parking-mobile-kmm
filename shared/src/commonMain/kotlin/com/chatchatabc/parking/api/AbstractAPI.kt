@@ -29,8 +29,6 @@ abstract class AbstractAPI(val httpClient: HttpClient) {
         this.token = token
     }
 
-    val config = com.chatchatabc.parking.Config
-
     suspend inline fun <reified T> makeRequest(
         method: HttpMethod,
         url: String,
@@ -52,6 +50,7 @@ abstract class AbstractAPI(val httpClient: HttpClient) {
                 setAuthorizationHeader()
             }.body()
         }.getOrElse {
+            it.printStackTrace()
             defaultUnknownError(it.message)
         }
     }
@@ -98,12 +97,13 @@ abstract class AbstractAPI(val httpClient: HttpClient) {
                 println("makeUploadRequest: $it")
             }.body()
         }.getOrElse {
+            it.printStackTrace()
             defaultUnknownError(it.message)
         }
     }
 
     fun HttpRequestBuilder.setAuthorizationHeader() {
-        token?.let { headers.append("Authorization", "Bearer $token") }
+        token.let { headers.append("Authorization", "Bearer $token") }
     }
 
     fun <T> defaultUnknownError(message: String? = null): ApiResponse<T> {

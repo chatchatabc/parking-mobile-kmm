@@ -12,6 +12,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,16 +25,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.Motorcycle
+import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -53,17 +56,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.ActivityCompat
+import com.chatchatabc.parking.compose.Popup
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.QRScanModule
 import com.chatchatabc.parking.model.Invoice
 import com.chatchatabc.parking.model.Vehicle
-import com.chatchatabc.parking.model.VehicleType
-import com.chatchatabc.parking.model.toEnum
 import com.chatchatabc.parking.viewModel.QRScanState
 import com.chatchatabc.parking.viewModel.QRScanViewModel
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -95,145 +98,170 @@ class QRScanActivity: ComponentActivity() {
 
         viewModel.hasPermission.value = EasyPermissions.hasPermissions(this, Manifest.permission.CAMERA)
 
-        val cameraExecutor = Executors.newSingleThreadExecutor()
+        if (EasyPermissions.hasPermissions(this, Manifest.permission.CAMERA)) {
+            openQRScanner()
+        } else {
+            EasyPermissions.requestPermissions(
+                this,
+                "Camera permission is required to scan QR code",
+                0,
+                Manifest.permission.CAMERA
+            )
+        }
+    }
 
-        val parkingRegex = "VEHICLE:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):VEHICLE".toRegex()
+    @OptIn(ExperimentalMaterial3Api::class)
+    fun openQRScanner() {
+        setContent {
+            val cameraExecutor = Executors.newSingleThreadExecutor()
 
-        val analyzer = QRAnalyzer {
-            if (viewModel.uiState.value == QRScanState.SCAN) {
-                it.forEach {
-                    if (it.rawValue?.matches(parkingRegex) == true) {
-                        viewModel.checkVehicle(parkingRegex.find(it.rawValue!!)!!.groupValues[1])
-                        return@QRAnalyzer
+            val parkingRegex = "VEHICLE:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):VEHICLE".toRegex()
+
+            val analyzer = QRAnalyzer {
+                if (viewModel.uiState.value == QRScanState.SCAN) {
+                    it.forEach {
+                        if (it.rawValue?.matches(parkingRegex) == true) {
+                            viewModel.checkVehicle(parkingRegex.find(it.rawValue!!)!!.groupValues[1])
+                            return@QRAnalyzer
+                        }
                     }
                 }
             }
-        }
 
-        val imageAnalyzer = ImageAnalysis.Builder()
-            .setTargetResolution(Size(480, 480))
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .build()
-            .also {
-                it.setAnalyzer(cameraExecutor, analyzer)
-            }
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setTargetResolution(Size(480, 480))
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, analyzer)
+                }
 
-        val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-        setContent {
-            AppTheme {
-                Surface {
-                    Box(Modifier.fillMaxSize()) {
-                        val state by viewModel.uiState.collectAsState()
+            setContent {
+                AppTheme {
+                    Surface {
+                        Box(Modifier.fillMaxSize()) {
+                            val state by viewModel.uiState.collectAsState()
 
-                        LaunchedEffect(state) {
-                            println("STATE CHANGED: $state")
-                        }
+                            LaunchedEffect(state) {
+                                println("STATE CHANGED: $state")
+                            }
 
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            QRScanLayout(
-                                imageAnalyzer,
-                                cameraSelector,
-                                cameraExecutor
-                            )
-                        }
-
-                        val currentVehicle by viewModel.currentVehicle.collectAsState()
-                        val currentInvoice by viewModel.currentInvoice.collectAsState()
-
-                        if (state != QRScanState.SCAN) {
-                            AlertDialog(
-                                onDismissRequest = {
-                                    viewModel.cancel()
-                                },
-                                properties = DialogProperties(
-                                    dismissOnBackPress = true,
-                                    dismissOnClickOutside = true,
-                                    usePlatformDefaultWidth = false,
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                QRScanLayout(
+                                    imageAnalyzer,
+                                    cameraSelector,
+                                    cameraExecutor
                                 )
-                            ) {
-                                when (state) {
-                                    QRScanState.VEHICLE_PARKING -> {
-                                        StartParkingView(
-                                            vehicle = currentVehicle!!,
-                                            onCancel = {
-                                                viewModel.cancel()
-                                            },
-                                            onStartParking = { estimate ->
-                                                viewModel.park(estimate)
-                                            }
-                                        )
-                                    }
-                                    QRScanState.VEHICLE_PARKED -> {
-                                        Card {
-                                            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                                                Text(
-                                                    text = "Vehicle Parked",
-                                                    style = MaterialTheme.typography.headlineSmall
-                                                )
-                                            }
-                                        }
-                                    }
+                            }
 
-                                    QRScanState.VEHICLE_LEAVING -> {
-                                        Card {
-                                            currentVehicle?.let {
-                                                VehicleInfo(vehicle = currentVehicle!!)
-                                            }
-                                        }
-                                    }
+                            val currentVehicle by viewModel.currentVehicle.collectAsState()
+                            val currentInvoice by viewModel.currentInvoice.collectAsState()
 
-                                    QRScanState.VEHICLE_LEFT -> {
-                                        ParkingEndView(invoice = currentInvoice!!, onCancel = {
-                                            viewModel.cancel()
-                                        }) { paid ->
-                                            viewModel.leave(paid)
-                                        }
-                                    }
-
-                                    QRScanState.VEHICLE_INVALID -> {
-                                        Card {
-                                            Column(Modifier.fillMaxWidth()) {
-                                                Icon(
-                                                    Icons.Filled.QuestionMark,
-                                                    contentDescription = "Invalid Vehicle"
-                                                )
-                                                Text(
-                                                    text = "Invalid Vehicle",
-                                                    style = MaterialTheme.typography.headlineSmall
-                                                )
-                                                FilledTonalIconButton(onClick = {
+                            if (state != QRScanState.SCAN) {
+                                AlertDialog(
+                                    onDismissRequest = {
+                                        viewModel.cancel()
+                                    },
+                                    properties = DialogProperties(
+                                        dismissOnBackPress = true,
+                                        dismissOnClickOutside = true,
+                                        usePlatformDefaultWidth = false,
+                                    ),
+                                    modifier = Modifier.padding(32.dp)
+                                ) {
+                                    when (state) {
+                                        QRScanState.VEHICLE_PARKING -> {
+                                            StartParkingView(
+                                                vehicle = currentVehicle!!,
+                                                onCancel = {
                                                     viewModel.cancel()
-                                                }) {
-                                                    Icon(
-                                                        Icons.Filled.ArrowBack,
-                                                        contentDescription = "Back"
+                                                },
+                                                onStartParking = { estimate ->
+                                                    viewModel.park(estimate)
+                                                }
+                                            )
+                                        }
+                                        QRScanState.VEHICLE_PARKED -> {
+                                            Popup(
+                                                title = "Vehicle Parked",
+                                                icon = Icons.Filled.Check,
+                                                content = "Vehicle is parked",
+                                                buttons = mapOf(
+                                                    "Got it" to {
+                                                        viewModel.cancel()
+                                                    }
+                                                )
+                                            )
+                                        }
+
+                                        QRScanState.VEHICLE_LEAVING -> {
+                                            Column(Modifier.padding(32.dp)) {
+                                                currentVehicle?.let {
+                                                    VehicleInfo(vehicle = currentVehicle!!, title = "Vehicle Leaving")
+                                                }
+                                                currentInvoice?.let {
+                                                    EndParkingComposable(
+                                                        onCancel = {
+                                                            viewModel.cancel()
+                                                        },
+                                                        onEndParking = { paid ->
+                                                            viewModel.leave(paid)
+                                                        },
+                                                        invoice = currentInvoice!!
                                                     )
                                                 }
                                             }
                                         }
-                                    }
 
-                                    QRScanState.LOADING -> {
-                                        Card {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(32.dp)
-                                                    .fillMaxWidth(),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.Center
-                                            ) {
-                                                CircularProgressIndicator()
-                                                Text(
-                                                    text = "Loading...",
-                                                    style = MaterialTheme.typography.headlineSmall
+                                        QRScanState.VEHICLE_LEFT -> {
+                                            Popup(
+                                                title = "Vehicle Left",
+                                                icon = Icons.Filled.WavingHand,
+                                                content = "The vehicle has been successfully released from the parking lot.",
+                                                buttons = mapOf(
+                                                    "Got it" to {
+                                                        viewModel.cancel()
+                                                    }
                                                 )
+                                            )
+                                        }
+
+                                        QRScanState.VEHICLE_INVALID -> {
+                                            Popup(
+                                                title = "Invalid Vehicle",
+                                                icon = Icons.Filled.QuestionMark,
+                                                content = "The vehicle is not registered or has been deleted. Please ask the driver to register the vehicle.",
+                                                buttons = mapOf(
+                                                    "I understand" to {
+                                                        viewModel.cancel()
+                                                    }
+                                                )
+                                            )
+                                        }
+
+                                        QRScanState.LOADING -> {
+                                            Card {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(32.dp)
+                                                        .fillMaxWidth(),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.Center
+                                                ) {
+                                                    CircularProgressIndicator()
+                                                    Text(
+                                                        text = "Loading...",
+                                                        style = MaterialTheme.typography.headlineSmall
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
 
-                                    else -> {}
+                                        else -> {}
+                                    }
                                 }
                             }
                         }
@@ -251,22 +279,30 @@ class QRScanActivity: ComponentActivity() {
     ) {
         val context = LocalContext.current
 
-        Column {
-            Card {
-                Row(
-                    Modifier.padding(32.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "Scan QR Code", style = MaterialTheme.typography.headlineSmall)
-                    FilledTonalIconButton(onClick = {
-                        finish()
-                    }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
-                    }
+        Column() {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(32.dp, 16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilledTonalIconButton(onClick = {
+                    finish()
+                }, colors = IconButtonDefaults.filledIconButtonColors(
+                        MaterialTheme.colorScheme.primary,
+                        MaterialTheme.colorScheme.onPrimary
+                )) {
+                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
                 }
+
+                Text(
+                    text = "Scan Vehicle QR Code",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
             }
-            Card(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize()) {
                 val previewView by remember {
                     mutableStateOf(PreviewView(context))
                 }
@@ -283,7 +319,9 @@ class QRScanActivity: ComponentActivity() {
                     modifier = Modifier
                         .padding(64.dp)
                         .fillMaxWidth()
-                        .aspectRatio(1f),
+                        .aspectRatio(1f)
+                        .align(Alignment.Center)
+                        .clip(MaterialTheme.shapes.large),
                     factory = {
                         previewView
                     }
@@ -353,20 +391,25 @@ class QRAnalyzer(private val onQrCodesDetected: (qrCodes: List<Barcode>) -> Unit
 }
 
 @Composable
-fun VehicleInfo(vehicle: Vehicle) {
-    Card {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp)) {
-            Text("Vehicle Info", style = MaterialTheme.typography.headlineSmall)
-            Row() {
-                Icon(
-                    if (vehicle.type.toEnum<VehicleType>() == VehicleType.CAR) Icons.Filled.DirectionsCar else Icons.Filled.Motorcycle,
-                    contentDescription = "Vehicle Type",
-                    modifier = Modifier.size(24.dp)
+fun VehicleInfo(vehicle: Vehicle, title: String) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        Box(Modifier.padding(16.dp)) {
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelLarge
                 )
-                Text(text = vehicle.plateNumber, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    vehicle?.plateNumber ?: "",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -374,7 +417,7 @@ fun VehicleInfo(vehicle: Vehicle) {
 
 @Composable
 fun ParkingEndView(invoice: Invoice, onCancel: () -> Unit, onEndInvoice: (paid: Boolean) -> Unit) {
-    Card {
+    Card(colors = CardDefaults.elevatedCardColors()) {
         Text("Invoice")
         Text("Invoice here: $invoice")
     }
@@ -420,7 +463,7 @@ fun StartParkingView(vehicle: Vehicle, onStartParking: (Int) -> Unit, onCancel: 
     }
 
     Column(Modifier.padding(16.dp)) {
-        VehicleInfo(vehicle)
+        VehicleInfo(vehicle, "Start Parking")
         Card {
             Column(Modifier.padding(16.dp)) {
                 Text("Estimated Stay in hours")
@@ -447,7 +490,10 @@ fun StartParkingView(vehicle: Vehicle, onStartParking: (Int) -> Unit, onCancel: 
                 }
             }
         }
-        Row(Modifier.fillMaxWidth().padding(0.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(0.dp)) {
             FilledTonalIconButton(onClick = {
                 onCancel()
             }, colors = IconButtonDefaults.filledTonalIconButtonColors(
@@ -465,6 +511,40 @@ fun StartParkingView(vehicle: Vehicle, onStartParking: (Int) -> Unit, onCancel: 
                 Text("Start Parking")
             }
 
+        }
+    }
+}
+
+@Composable
+fun EndParkingComposable(
+    onEndParking: (paid: Boolean) -> Unit,
+    onCancel: () -> Unit,
+    invoice: Invoice,
+) {
+    Card {
+        Column(Modifier.padding(16.dp)) {
+            Text("Invoice", style = MaterialTheme.typography.headlineSmall)
+            Text("Invoice here: $invoice", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+    Row {
+        FilledTonalIconButton(onClick = { onCancel() }, colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
+        )) {
+            Icon(Icons.Filled.Cancel, contentDescription = "Cancel")
+        }
+        FilledTonalButton(
+            modifier = Modifier.weight(1f),
+            onClick = {
+                onEndParking(true)
+            }
+        ) {
+            Text("Mark as Paid")
+        }
+        FilledTonalButton(onClick = { onEndParking(false) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.elevatedButtonColors()
+        ) {
+            Text("End Parking")
         }
     }
 }

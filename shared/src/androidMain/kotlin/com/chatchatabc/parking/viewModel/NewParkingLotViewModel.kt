@@ -28,7 +28,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     var description = MutableStateFlow("")
     var capacity = MutableStateFlow(0)
 
-    var uuid = MutableStateFlow("")
+    var uuid: MutableStateFlow<String> = MutableStateFlow("")
 
     var images: MutableStateFlow<List<ImageUpload>> = MutableStateFlow(listOf())
 
@@ -143,7 +143,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
                             } ?: Pair(1, 0)
                         daysOpen.value = parkingLot.openDaysFlag?.getFlags() ?: listOf()
                         api.getImages(parkingLot.parkingLotUuid).let {
-                            if (!it.errors.isNullOrEmpty()) {
+                            if (it.errors.isEmpty()) {
                                 images.value = it.data?.content?.map { image ->
                                     ImageUpload(
                                         status = ImageUploadState.UPLOADED,

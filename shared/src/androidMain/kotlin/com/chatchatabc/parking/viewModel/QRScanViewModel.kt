@@ -46,6 +46,9 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
             val invoice = invoiceAPI.getActiveInvoice(currentVehicle.value!!.vehicleUuid)
 
             if (invoice.errors.isNotEmpty()) {
+                invoice.errors.forEach {
+                    println("Error: $it")
+                }
                 uiState.value = QRScanState.VEHICLE_INVALID
                 return@load
             }
@@ -74,9 +77,9 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
 
     fun leave(paid: Boolean) {
         load {
-            invoiceAPI.endInvoice(currentInvoice.value!!.invoiceUuid)
+            invoiceAPI.endInvoice(currentInvoice.value!!.id)
             if (paid) {
-                invoiceAPI.payInvoice(currentInvoice.value!!.invoiceUuid)
+                invoiceAPI.payInvoice(currentInvoice.value!!.id)
             }
             uiState.value = QRScanState.VEHICLE_LEFT
         }

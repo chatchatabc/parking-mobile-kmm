@@ -17,7 +17,7 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
     suspend fun setToPending(): ApiResponse<ParkingLot> =
         makeRequest(HttpMethod.Put, "$ENDPOINT/set-pending")
 
-    suspend fun createDraft(payload: ParkingLotDraftDTO): ApiResponse<ParkingLot> =
+    suspend fun createDraft(payload: ParkingLotDraftDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Post, "$ENDPOINT/register", payload)
 
     suspend fun saveDraft(payload: ParkingLotDraftDTO): ApiResponse<Unit> =
