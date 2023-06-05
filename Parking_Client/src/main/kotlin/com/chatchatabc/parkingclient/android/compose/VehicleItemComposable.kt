@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.chatchatabc.parking.model.Vehicle
-import com.chatchatabc.parking.viewModel.VehicleType
+import com.chatchatabc.parking.model.VehicleType
 
 @Composable
 fun VehicleItem(vehicle: Vehicle, onClick: (Vehicle) -> Unit) {
