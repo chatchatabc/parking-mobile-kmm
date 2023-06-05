@@ -1,6 +1,7 @@
-package com.chatchatabc.parkingclient.android.compose
+package com.chatchatabc.parkingclient.android.compose.account
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -51,10 +52,24 @@ fun GenericMenuItemComposable(
                 modifier = Modifier.padding(start = 24.dp)
             )
             Spacer(Modifier.weight(1f))
-            content()
-            IconButton(onClick = onClick) {
-                Icon(Icons.Filled.ChevronRight, contentDescription = "Next", tint = Color.Black)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(0.7f)
+                        .padding(start = 24.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    content()
+                }
+                IconButton(onClick = onClick) {
+                    Icon(Icons.Filled.ChevronRight, contentDescription = "Next", tint = Color.Black)
+                }
             }
+
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.chatchatabc.parkingclient.android.compose
+package com.chatchatabc.parkingclient.android.compose.vehicle
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chatchatabc.parking.model.Vehicle
+import com.chatchatabc.parkingclient.android.compose.vehicle.VehicleItem
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable

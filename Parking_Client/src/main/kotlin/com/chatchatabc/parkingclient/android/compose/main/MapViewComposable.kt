@@ -1,4 +1,4 @@
-package com.chatchatabc.parkingclient.android.compose
+package com.chatchatabc.parkingclient.android.compose.main
 
 import android.os.Build
 import androidx.annotation.RequiresApi
