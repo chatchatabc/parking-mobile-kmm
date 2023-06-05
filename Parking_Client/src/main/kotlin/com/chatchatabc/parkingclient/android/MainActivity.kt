@@ -69,9 +69,10 @@ import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
-import com.chatchatabc.parkingclient.android.compose.GenericMenuItemComposable
-import com.chatchatabc.parkingclient.android.compose.MapViewComposable
-import com.chatchatabc.parkingclient.android.compose.SelectVehicleSheet
+import com.chatchatabc.parkingclient.android.compose.account.GenericMenuItemComposable
+import com.chatchatabc.parkingclient.android.compose.main.MapViewComposable
+import com.chatchatabc.parkingclient.android.compose.account.MenuSubtextComposable
+import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
@@ -426,11 +427,7 @@ class MainActivity : LocationActivity() {
                                             // Profile Photo
                                             GenericMenuItemComposable("Profile Photo", content = {
                                                 // TODO: Replace with User Profile Picture
-                                                Text(
-                                                    "\"Photo\"",
-                                                    // Black font color
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
+                                                MenuSubtextComposable(label = "\"Photo\"")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("Profile Photo Clicked")
@@ -438,7 +435,7 @@ class MainActivity : LocationActivity() {
 
                                             // My Coupons
                                             GenericMenuItemComposable("My Coupons", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("Coupons Clicked")
@@ -446,7 +443,7 @@ class MainActivity : LocationActivity() {
 
                                             // First Name
                                             GenericMenuItemComposable("First Name", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbb")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("First name Clicked")
@@ -454,35 +451,35 @@ class MainActivity : LocationActivity() {
 
                                             // Last Name
                                             GenericMenuItemComposable("Last Name", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Phone
                                             GenericMenuItemComposable("Phone", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Email
                                             GenericMenuItemComposable("Email", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Language
                                             GenericMenuItemComposable("Language", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Feedback
                                             GenericMenuItemComposable("Feedback", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
