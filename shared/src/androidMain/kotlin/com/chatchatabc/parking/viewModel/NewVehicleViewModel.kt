@@ -1,16 +1,11 @@
 package com.chatchatabc.parking.viewModel
 
 import com.chatchatabc.parking.api.VehicleAPI
+import com.chatchatabc.parking.model.VehicleType
 import com.chatchatabc.parking.model.dto.NewVehicleDTO
 import kotlinx.coroutines.flow.MutableStateFlow
 
-enum class VehicleType {
-    CAR,
-    MOTORCYCLE,
-    NONE
-}
-
-class NewVehicleViewModel(val vehicleApi: VehicleAPI): BaseViewModel() {
+class NewVehicleViewModel(val vehicleApi: VehicleAPI): BaseViewModel(vehicleApi) {
     var page = MutableStateFlow(0)
     var name = MutableStateFlow("")
     val platenumber = MutableStateFlow("")

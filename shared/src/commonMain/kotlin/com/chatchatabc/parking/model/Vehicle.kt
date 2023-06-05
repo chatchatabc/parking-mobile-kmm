@@ -11,3 +11,13 @@ data class Vehicle(
     val createdAt: String,
     val updatedAt: String
 )
+
+enum class VehicleType {
+    CAR,
+    MOTORCYCLE,
+    NONE
+}
+
+inline fun <reified T : Enum<T>> Int.toEnum(): T {
+    return enumValues<T>()[this]
+}

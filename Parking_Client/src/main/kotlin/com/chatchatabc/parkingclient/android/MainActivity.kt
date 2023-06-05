@@ -75,9 +75,9 @@ import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.model.Vehicle
+import com.chatchatabc.parking.model.VehicleType
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
-import com.chatchatabc.parking.viewModel.VehicleType
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition

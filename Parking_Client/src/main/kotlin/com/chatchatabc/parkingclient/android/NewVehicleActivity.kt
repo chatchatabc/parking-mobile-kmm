@@ -23,8 +23,8 @@ import com.chatchatabc.parking.compose.wizard.WizardLayout
 import com.chatchatabc.parking.compose.wizard.WizardSegmentedSelector
 import com.chatchatabc.parking.compose.wizard.WizardTextField
 import com.chatchatabc.parking.di.NewVehicleModule
+import com.chatchatabc.parking.model.VehicleType
 import com.chatchatabc.parking.viewModel.NewVehicleViewModel
-import com.chatchatabc.parking.viewModel.VehicleType
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
