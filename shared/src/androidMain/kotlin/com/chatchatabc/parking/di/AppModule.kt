@@ -3,6 +3,7 @@ package com.chatchatabc.parking.di
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.chatchatabc.parking.api.InvoiceAPI
 import com.chatchatabc.parking.api.LoginAPI
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.api.ProfileAPI
@@ -17,6 +18,7 @@ import com.chatchatabc.parking.viewModel.MainViewModel
 import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
 import com.chatchatabc.parking.viewModel.NewUserViewModel
 import com.chatchatabc.parking.viewModel.NewVehicleViewModel
+import com.chatchatabc.parking.viewModel.QRScanViewModel
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.statement.bodyAsText
@@ -117,6 +119,14 @@ val NewVehicleModule = module {
     single { VehicleAPI(get()) }
     viewModel {
         NewVehicleViewModel(get())
+    }
+}
+val QRScanModule = module {
+    includes(TokenModule, EncryptedSharedPreferencesModule)
+    single { InvoiceAPI(get()) }
+    single { VehicleAPI(get()) }
+    viewModel {
+        QRScanViewModel(get(), get())
     }
 }
 

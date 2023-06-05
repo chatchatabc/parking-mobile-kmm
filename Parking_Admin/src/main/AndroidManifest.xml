@@ -47,7 +47,10 @@
             android:exported="true"
             android:windowSoftInputMode="adjustResize"/>
         <activity
-            android:name="com.chatchatabc.parkingadmin.android.MainActivity"
+            android:name=".MainActivity"
+            android:exported="true" />
+
+        <activity android:name=".QRScanActivity"
             android:exported="true" />
 
         <provider

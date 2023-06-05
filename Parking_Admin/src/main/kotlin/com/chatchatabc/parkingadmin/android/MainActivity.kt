@@ -25,14 +25,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,11 +49,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogWindowProvider
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainModule
 import com.chatchatabc.parking.model.ParkingLot
@@ -75,7 +74,6 @@ class MainActivity : ComponentActivity() {
                 viewModel.getParkingLot()
             }
         }
-
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -138,6 +136,17 @@ class MainActivity : ComponentActivity() {
                             },
                             scrollBehavior = scrollBehavior
                         )
+                    },
+                    floatingActionButton = {
+                        FloatingActionButton(onClick = {
+                            startActivity(Intent(this@MainActivity, QRScanActivity::class.java))
+                        }) {
+                            Icon(
+                                Icons.Filled.QrCodeScanner,
+                                contentDescription = "Scan QR Code",
+                                Modifier.size(24.dp)
+                            )
+                        }
                     }
                 ) {
                     Column(

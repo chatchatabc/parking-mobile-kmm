@@ -54,7 +54,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.4.1")
     implementation("androidx.compose.material3:material3:1.1.0-beta02")
     implementation("androidx.activity:activity-compose:1.7.0")
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
     implementation(platform("androidx.compose:compose-bom:2022.10.00"))
     implementation("androidx.compose.ui:ui-graphics")
@@ -111,4 +110,21 @@ dependencies {
 
     // Zoomable
     implementation("net.engawapg.lib:zoomable:1.4.2")
+
+    implementation("com.google.mlkit:barcode-scanning:17.1.0")
+
+    implementation("androidx.camera:camera-camera2:1.3.0-alpha07")
+
+    // https://mvnrepository.com/artifact/androidx.camera/camera-lifecycle
+    runtimeOnly("androidx.camera:camera-lifecycle:1.3.0-alpha07")
+
+    // https://mvnrepository.com/artifact/androidx.camera/camera-mlkit-vision
+    implementation("androidx.camera:camera-mlkit-vision:1.3.0-alpha07")
+
+    // https://mvnrepository.com/artifact/androidx.camera/camera-viewfinder
+    // implementation("androidx.camera:camera-viewfinder:1.3.0-alpha07")
+
+
+    // https://mvnrepository.com/artifact/androidx.camera/camera-core
+    implementation("androidx.camera:camera-lifecycle:1.3.0-alpha07")
 }
