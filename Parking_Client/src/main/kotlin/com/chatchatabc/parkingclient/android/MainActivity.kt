@@ -1,11 +1,6 @@
 package com.chatchatabc.parkingclient.android
 
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Rect
-import android.graphics.Typeface
 import android.location.Location
 import android.os.Build
 import android.os.Bundle
@@ -22,13 +17,13 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
+import androidx.compose.material.AppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
@@ -47,6 +42,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -72,10 +69,8 @@ import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
-import com.chatchatabc.parking.model.Vehicle
-import com.chatchatabc.parking.model.VehicleType
-import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
+import com.chatchatabc.parkingclient.android.compose.GenericMenuItemComposable
 import com.chatchatabc.parkingclient.android.compose.MapViewComposable
 import com.chatchatabc.parkingclient.android.compose.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
@@ -304,15 +299,29 @@ class MainActivity : LocationActivity() {
 
                                 // Me page
                                 3 -> {
-                                    androidx.compose.material3.Scaffold(
+                                    Scaffold(
                                         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         topBar = {
                                             TopAppBar(
                                                 title = {
-                                                    Text("Profile")
+                                                    Text(
+                                                        text = "Profile",
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .wrapContentSize(Alignment.Center)
+                                                    )
                                                 },
-                                            )
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentSize(Alignment.Center)
+                                                    .background(MaterialTheme.colorScheme.primary),
+                                                colors = TopAppBarDefaults.topAppBarColors(
+                                                    containerColor = MaterialTheme.colorScheme.primary,
+                                                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                                                ),
+
+                                                )
                                         }
                                     ) {
 
@@ -388,108 +397,68 @@ class MainActivity : LocationActivity() {
                                             verticalArrangement = Arrangement.Center
                                         ) {
                                             // Profile Photo
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Profile Photo")
-                                            }
+                                            GenericMenuItemComposable("Profile Photo", content = {
+                                                // TODO: Replace with User Profile Picture
+                                                Text(
+                                                    "\"Photo\"",
+                                                    // Black font color
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }, onClick = {
+                                                // TODO: Add functionality
+                                                println("Profile Photo Clicked")
+                                            })
 
                                             // My Coupons
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("My Coupons")
-                                            }
+                                            GenericMenuItemComposable("My Coupons", content = {
+                                                Text("")
+                                            }, onClick = {
+                                                // TODO: Add functionality
+                                                println("Coupons Clicked")
+                                            })
 
                                             // First Name
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("First Name")
-                                            }
+                                            GenericMenuItemComposable("First Name", content = {
+                                                Text("")
+                                            }, onClick = {
+                                                // TODO: Add functionality
+                                                println("First name Clicked")
+                                            })
 
                                             // Last Name
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Last Name")
-                                            }
+                                            GenericMenuItemComposable("Last Name", content = {
+                                                Text("")
+                                            }, onClick = {
+
+                                            })
 
                                             // Phone
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Phone")
-                                            }
+                                            GenericMenuItemComposable("Phone", content = {
+                                                Text("")
+                                            }, onClick = {
+
+                                            })
 
                                             // Email
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Email")
-                                            }
+                                            GenericMenuItemComposable("Email", content = {
+                                                Text("")
+                                            }, onClick = {
+
+                                            })
 
                                             // Language
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Language")
-                                            }
+                                            GenericMenuItemComposable("Language", content = {
+                                                Text("")
+                                            }, onClick = {
+
+                                            })
 
                                             // Feedback
-                                            Button(
-                                                onClick = {
-                                                    // TODO:
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth(),
-                                                colors = ButtonDefaults.filledTonalButtonColors(),
-                                                shape = RectangleShape
-                                            ) {
-                                                Text("Feedback")
-                                            }
+                                            GenericMenuItemComposable("Feedback", content = {
+                                                Text("")
+                                            }, onClick = {
+
+                                            })
 
                                             // Create Logout Button that is centered and width full
                                             Button(
