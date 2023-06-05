@@ -13,10 +13,6 @@ class NewVehicleViewModel(val vehicleApi: VehicleAPI): BaseViewModel(vehicleApi)
 
     val errors = MutableStateFlow(mapOf<String, String>())
 
-    init {
-        setToken(vehicleApi)
-    }
-
     fun validateAndSubmit() {
         validations.forEach { (currentPage, validation) ->
             validation.invoke()

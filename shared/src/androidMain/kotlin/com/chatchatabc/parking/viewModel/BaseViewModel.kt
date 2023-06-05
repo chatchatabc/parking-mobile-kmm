@@ -10,11 +10,11 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 
-open class BaseViewModel: ViewModel(), KoinComponent {
+open class BaseViewModel(vararg apis: AbstractAPI): ViewModel(), KoinComponent {
     val isLoading = MutableStateFlow(false)
     val token: String by inject(named("token"))
 
-    fun setToken(vararg apis: AbstractAPI) {
+    init {
         apis.forEach {
             it.setToken(token)
         }

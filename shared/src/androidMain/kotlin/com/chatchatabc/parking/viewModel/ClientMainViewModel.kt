@@ -24,7 +24,7 @@ class ClientMainViewModel(
     val vehicleAPI: VehicleAPI,
     val parkingRealm: Realm,
     val sharedPreferences: SharedPreferences
-): BaseViewModel() {
+): BaseViewModel(parkingAPI, profileAPI, vehicleAPI) {
     val parkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
     val visibleParkingLots = MutableStateFlow(listOf<ParkingLotRealmObject>())
 
@@ -105,9 +105,9 @@ class ClientMainViewModel(
 
     fun createQRFromString(uuid: String) {
         isLoadingQRCode.value = true
-        val cellSize = 30 // pixels
+        val cellSize = 20 // pixels
         val outputStream: ByteArrayOutputStream = ByteArrayOutputStream()
-        QRCode("https://github.com/g0dkar/qrcode-kotlin")
+        QRCode("VEHICLE:$uuid:VEHICLE")
             .render(cellSize, margin = cellSize)
             .writeImage(outputStream)
         // Create bitmap from OutputStream

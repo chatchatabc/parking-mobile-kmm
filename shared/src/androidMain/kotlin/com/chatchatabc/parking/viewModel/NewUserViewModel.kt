@@ -13,11 +13,7 @@ import kotlinx.serialization.json.Json
 class NewUserViewModel(
     val userAPI: UserAPI,
     val preferences: SharedPreferences
-): BaseViewModel() {
-    init {
-        setToken(userAPI)
-    }
-
+): BaseViewModel(userAPI) {
     val Json = Json { ignoreUnknownKeys = true }
 
     val firstName = MutableStateFlow("")

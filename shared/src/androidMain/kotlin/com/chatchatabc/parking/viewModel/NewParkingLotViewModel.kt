@@ -13,10 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): BaseViewModel() {
-    init {
-        setToken(api)
-    }
+class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): BaseViewModel(api) {
     var page = MutableStateFlow(0)
 
     var errors = MutableStateFlow(mapOf<String, String>())
@@ -131,7 +128,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     private fun restoreDraft() {
         viewModelScope.launch {
             api.getParkingLot().let {
-                if (it.errors.isNullOrEmpty()) {
+                if (it.errors.isEmpty()) {
                     it.data?.let { parkingLot ->
                         parkingLotName.value = parkingLot.name ?: ""
                         parkingLotAddress.value = parkingLot.address ?: ""

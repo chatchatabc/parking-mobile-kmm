@@ -14,10 +14,7 @@ class MainViewModel(
     val parkingAPI: ParkingAPI,
     val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
-) : BaseViewModel() {
-    init {
-        setToken(parkingAPI, profileAPI)
-    }
+) : BaseViewModel(parkingAPI, profileAPI) {
 
     val logoutPopupOpened = MutableStateFlow(false)
     val parkingLot: MutableStateFlow<ParkingLot?> = MutableStateFlow(null)

@@ -9,13 +9,9 @@ import kotlinx.coroutines.launch
 class AccountViewModel(
     val profileAPI: ProfileAPI,
     val sharedPreferences: SharedPreferences
-): BaseViewModel() {
+): BaseViewModel(profileAPI) {
 
     val logoutPopupOpened = MutableStateFlow(false)
-
-    init {
-        setToken(profileAPI)
-    }
 
     fun clearAuthToken() {
         viewModelScope.launch {
