@@ -106,11 +106,12 @@ val ParkingRealmModule = module {
 
 val MainMapModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
+    single { UserAPI(get()) }
     single { ProfileAPI(get()) }
     single { ParkingAPI(get()) }
     single { VehicleAPI(get()) }
     viewModel {
-        ClientMainViewModel(get(), get(), get(), get(named("parkingRealm")), get())
+        ClientMainViewModel(get(), get(), get(), get(), get(named("parkingRealm")), get())
     }
 }
 

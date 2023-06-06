@@ -76,4 +76,8 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.github.g0dkar/qrcode-kotlin-android
     implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
+
+    // TODO: Maybe move to shared?
+    // https://mvnrepository.com/artifact/com.spoton/nats-android
+    implementation("com.spoton:nats-android:2.4.2")
 }

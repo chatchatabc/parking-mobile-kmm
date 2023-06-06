@@ -1,6 +1,7 @@
 package com.chatchatabc.parking.api
 
 import com.chatchatabc.parking.model.User
+import com.chatchatabc.parking.model.UserNotification
 import com.chatchatabc.parking.model.dto.UpdateUserDTO
 import com.chatchatabc.parking.model.response.ApiResponse
 import io.ktor.client.HttpClient
@@ -13,4 +14,7 @@ class UserAPI(val client: HttpClient): AbstractAPI(client) {
 
     suspend fun updateProfile(payload: UpdateUserDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
+
+    suspend fun getNotificationId(): ApiResponse<UserNotification> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/get-notification-id")
 }

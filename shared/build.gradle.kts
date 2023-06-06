@@ -90,6 +90,8 @@ kotlin {
 
                 // https://mvnrepository.com/artifact/io.github.g0dkar/qrcode-kotlin-android
                 implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
+                
+                implementation("com.spoton:nats-android:2.4.2")
             }
         }
 //        val androidUnitTest by getting

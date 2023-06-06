@@ -26,6 +26,9 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
     suspend fun getParkingLot(): ApiResponse<ParkingLot> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/get")
 
+    suspend fun getParkingLot(parkingLotUuid: String): ApiResponse<ParkingLot> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/get/$parkingLotUuid")
+
     suspend fun uploadImage(image: ByteArray, onProgress: (Int) -> Unit): ApiResponse<ParkingLotImage> =
         makeUploadRequest( "$ENDPOINT/upload-image", image, onUploadUpdate = { sent, totalSize ->
             onProgress((sent.toDouble() / totalSize.toDouble() * 100).toInt())
