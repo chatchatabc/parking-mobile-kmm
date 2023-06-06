@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -51,7 +52,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,9 +69,13 @@ import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
-import com.chatchatabc.parkingclient.android.compose.GenericMenuItemComposable
-import com.chatchatabc.parkingclient.android.compose.MapViewComposable
-import com.chatchatabc.parkingclient.android.compose.SelectVehicleSheet
+import com.chatchatabc.parking.viewModel.MainUiState
+import com.chatchatabc.parkingclient.android.compose.account.GenericMenuItemComposable
+import com.chatchatabc.parkingclient.android.compose.account.MenuSubtextComposable
+import com.chatchatabc.parkingclient.android.compose.main.MapViewComposable
+import com.chatchatabc.parkingclient.android.compose.main.ParkingLotHighlightComposable
+import com.chatchatabc.parkingclient.android.compose.main.SearchBarComposable
+import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
@@ -305,7 +309,7 @@ class MainActivity : LocationActivity() {
                                                                 Icon(Icons.Filled.AccessTime, null)
                                                                 Text(text = "Successfully Parked!", style = MaterialTheme.typography.headlineSmall)
                                                                 parkedLot?.let {
-                                                                    Text(text = "Your parking in ${it.name} has been successfully confimed!.", style = MaterialTheme.typography.bodySmall)
+                                                                    Text(text = "Your parking in ${it.name} has been successfully confirmed!.", style = MaterialTheme.typography.bodySmall)
                                                                 }
                                                                 Button(
                                                                     modifier = Modifier.fillMaxWidth(),
@@ -493,7 +497,7 @@ class MainActivity : LocationActivity() {
 
                                             // First Name
                                             GenericMenuItemComposable("First Name", content = {
-                                                MenuSubtextComposable(label = "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbb")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("First name Clicked")
