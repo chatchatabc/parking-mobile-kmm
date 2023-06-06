@@ -1,4 +1,4 @@
-package com.chatchatabc.parkingclient.android.compose
+package com.chatchatabc.parkingclient.android.compose.main
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -25,7 +25,7 @@ fun MapViewComposable(
     modifier: Modifier = Modifier,
     pins: List<ParkingLotRealmObject>,
     onMapLoaded: () -> Unit,
-    onMapMoved: (LatLngBounds) -> Unit
+    onMapMoved: (LatLngBounds) -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val camera = rememberCameraPositionState()

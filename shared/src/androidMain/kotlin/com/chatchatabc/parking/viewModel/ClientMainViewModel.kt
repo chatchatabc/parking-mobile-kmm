@@ -93,7 +93,6 @@ class ClientMainViewModel(
 
     fun syncParkingLots() {
         load {
-            println("Getting all parking lots...")
             parkingAPI.getAllParkingLots().let { response ->
                 parkingRealm.writeBlocking {
                     if (response.errors.isEmpty()) response.data?.forEach { parkingLot ->
@@ -118,12 +117,10 @@ class ClientMainViewModel(
     fun getParkingLotsInRange(bounds: LatLngBounds) {
         println("Getting parking lots in range")
         load {
-            println("Querying...")
             parkingRealm.query<ParkingLotRealmObject>(
                 "latitude >= ${bounds.southwest.latitude} AND latitude <= ${bounds.northeast.latitude} AND " +
                         "longitude >= ${bounds.southwest.longitude} AND longitude <= ${bounds.northeast.longitude}"
             ).find().let {
-                println("Showing...")
                 visibleParkingLots.value = it
                 it.forEach {
                     println("Parking lot: ${it.name} (${it.latitude}, ${it.longitude})")

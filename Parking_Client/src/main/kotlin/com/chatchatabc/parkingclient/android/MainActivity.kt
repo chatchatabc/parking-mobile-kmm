@@ -24,7 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.outlined.AccountCircle
@@ -52,6 +51,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,7 +69,6 @@ import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
 import com.chatchatabc.parking.di.ParkingRealmModule
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
-import com.chatchatabc.parking.viewModel.MainUiState
 import com.chatchatabc.parkingclient.android.compose.GenericMenuItemComposable
 import com.chatchatabc.parkingclient.android.compose.MapViewComposable
 import com.chatchatabc.parkingclient.android.compose.SelectVehicleSheet
@@ -186,15 +185,38 @@ class MainActivity : LocationActivity() {
                             when (page) {
                                 // Parking Page
                                 0 -> {
-                                    if (hasPermission) {
-                                        MapViewComposable(
-                                            pins = visibleParkingLots,
-                                            modifier = Modifier.padding(padding),
-                                            onMapLoaded = {
-                                                viewModel.syncParkingLots()
-                                            },
-                                        ) {
-                                            viewModel.getParkingLotsInRange(it)
+                                    var textValue by remember { mutableStateOf("") }
+                                    Column(
+                                        // Primary background color
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .verticalScroll(rememberScrollState())
+                                            .background(MaterialTheme.colorScheme.primary)
+                                            .padding(16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    ) {
+                                        // Search Bar
+                                        SearchBarComposable(
+                                            textValue = textValue,
+                                            onValueChange = { newValue ->
+                                                textValue = newValue
+                                            }
+                                        )
+                                        // Parking Lot Highlights
+                                        ParkingLotHighlightComposable()
+                                        // Map
+                                        if (hasPermission) {
+                                            MapViewComposable(
+                                                pins = visibleParkingLots,
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .weight(1f),
+                                                onMapLoaded = {
+                                                    viewModel.syncParkingLots()
+                                                },
+                                            ) {
+                                                viewModel.getParkingLotsInRange(it)
+                                            }
                                         }
                                     }
 
@@ -320,10 +342,38 @@ class MainActivity : LocationActivity() {
                                 }
 
                                 // Jeepney Page
-                                1 -> {}
+                                1 -> {
+                                    // TODO: Implement Page
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .wrapContentSize(Alignment.Center)
+                                    ) {
+                                        Text(
+                                            text = "Page under construction",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentSize(Alignment.Center)
+                                        )
+                                    }
+                                }
 
                                 // Report Page
-                                2 -> {}
+                                2 -> {
+                                    // TODO: Implement Page
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .wrapContentSize(Alignment.Center)
+                                    ) {
+                                        Text(
+                                            text = "Page under construction",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentSize(Alignment.Center)
+                                        )
+                                    }
+                                }
 
                                 // Me page
                                 3 -> {
@@ -427,11 +477,7 @@ class MainActivity : LocationActivity() {
                                             // Profile Photo
                                             GenericMenuItemComposable("Profile Photo", content = {
                                                 // TODO: Replace with User Profile Picture
-                                                Text(
-                                                    "\"Photo\"",
-                                                    // Black font color
-                                                    color = MaterialTheme.colorScheme.onSurface
-                                                )
+                                                MenuSubtextComposable(label = "\"Photo\"")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("Profile Photo Clicked")
@@ -439,7 +485,7 @@ class MainActivity : LocationActivity() {
 
                                             // My Coupons
                                             GenericMenuItemComposable("My Coupons", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("Coupons Clicked")
@@ -447,7 +493,7 @@ class MainActivity : LocationActivity() {
 
                                             // First Name
                                             GenericMenuItemComposable("First Name", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "aaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbb")
                                             }, onClick = {
                                                 // TODO: Add functionality
                                                 println("First name Clicked")
@@ -455,35 +501,35 @@ class MainActivity : LocationActivity() {
 
                                             // Last Name
                                             GenericMenuItemComposable("Last Name", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Phone
                                             GenericMenuItemComposable("Phone", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Email
                                             GenericMenuItemComposable("Email", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Language
                                             GenericMenuItemComposable("Language", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
 
                                             // Feedback
                                             GenericMenuItemComposable("Feedback", content = {
-                                                Text("")
+                                                MenuSubtextComposable(label = "")
                                             }, onClick = {
 
                                             })
