@@ -6,12 +6,12 @@ import android.content.Intent
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.net.Uri
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import com.chatchatabc.parkingadmin.android.service.LocationService
+import timber.log.Timber
 
 
 /**
@@ -19,9 +19,7 @@ import com.chatchatabc.parkingadmin.android.service.LocationService
  *
  * This activity class handles majority of the permission work related to location.
  */
-abstract class LocationActivity: ComponentActivity() {
-    private var reason = "This app requires location permission to be granted."
-
+abstract class LocationActivity : ComponentActivity() {
     /**
      * This flow will emit true if the permission is granted, false otherwise.
      * Use this flow to conditionally enable features that require location to work.
@@ -29,9 +27,9 @@ abstract class LocationActivity: ComponentActivity() {
     val grantedPermissions: MutableLiveData<List<String>> = MutableLiveData(listOf())
 
     fun withLocationPermission(onPermissionGranted: () -> Unit) {
-        Log.d("LocationActivity", "Checking for permission...")
+        Timber.d("Checking for permission...")
         if (checkLocationPermission()) {
-            Log.d("LocationActivity", "Permission granted!")
+            Timber.d("Permission granted!")
             // Location permission granted, run the lambda
             onPermissionGranted()
         } else {
@@ -39,30 +37,24 @@ abstract class LocationActivity: ComponentActivity() {
                 if (it) {
                     onPermissionGranted()
                 } else {
-                    Log.d("LocationActivity", "Permission not granted!")
+                    Timber.d("LocationActivity", "Permission not granted!")
                     if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
                         // Show rationale and request permission
-                        Log.d("LocationActivity", "Showing rationale dialog")
+                        Timber.d("LocationActivity", "Showing rationale dialog")
                         showRationaleDialog {
-                            Log.d(
-                                "LocationActivity",
-                                "Rationale dialog dismissed, requesting permission"
-                            )
+                            Timber.d("Rationale dialog dismissed, requesting permission")
                             requestLocationPermission { granted ->
                                 if (granted) {
-                                    Log.d("LocationActivity", "Permission granted!")
+                                    Timber.d("Permission granted!")
                                     onPermissionGranted()
                                 } else {
-                                    Log.d("LocationActivity", "Permission not granted!")
+                                    Timber.d("Permission not granted!")
                                     showPermissionRequiredDialog()
                                 }
                             }
                         }
                     } else {
-                        Log.d(
-                            "LocationActivity",
-                            "Permission denied too many times! Showing permission required dialog"
-                        )
+                        Timber.d("Permission denied too many times! Showing permission required dialog")
                         // User has previously denied the permission and checked "Don't ask again"
                         showPermissionSettingsDialog()
                     }
@@ -83,10 +75,11 @@ abstract class LocationActivity: ComponentActivity() {
         permissionRequestCallbacks[requestCode] = onPermissionResult
     }
 
-    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        val callback = permissionRequestCallbacks[LOCATION_PERMISSION_REQUEST_CODE]
-        callback?.invoke(isGranted)
-    }
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            val callback = permissionRequestCallbacks[LOCATION_PERMISSION_REQUEST_CODE]
+            callback?.invoke(isGranted)
+        }
 
     private val permissionRequestCallbacks = mutableMapOf<Int, (Boolean) -> Unit>()
 
@@ -94,17 +87,12 @@ abstract class LocationActivity: ComponentActivity() {
         AlertDialog.Builder(this)
             .setMessage("This feature requires precise location to be enabled.")
             .setPositiveButton("Retry") { _, _ -> onPositiveButtonClick() }
-            .setNegativeButton("Back", null)
-            .create()
-            .show()
+            .setNegativeButton("Back", null).create().show()
     }
 
     private fun showPermissionRequiredDialog() {
-        AlertDialog.Builder(this)
-            .setMessage("We need location permission to provide this feature.")
-            .setPositiveButton("OK", null)
-            .create()
-            .show()
+        AlertDialog.Builder(this).setMessage("We need location permission to provide this feature.")
+            .setPositiveButton("OK", null).create().show()
     }
 
     private fun showPermissionSettingsDialog() {
@@ -116,10 +104,7 @@ abstract class LocationActivity: ComponentActivity() {
                 val uri = Uri.fromParts("package", packageName, null)
                 intent.data = uri
                 startActivity(intent)
-            }
-            .setNegativeButton("Cancel", null)
-            .create()
-            .show()
+            }.setNegativeButton("Cancel", null).create().show()
     }
 
     val locationService by lazy {

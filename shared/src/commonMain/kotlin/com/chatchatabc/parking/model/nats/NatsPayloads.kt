@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class InvoicePayload(
     val parkingLotUuid: String,
     val vehicleUuid: String,
-    val invoiceId: String
+    val invoiceUuid: String
 )

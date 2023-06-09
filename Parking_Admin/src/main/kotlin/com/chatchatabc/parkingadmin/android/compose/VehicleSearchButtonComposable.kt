@@ -1,5 +1,6 @@
 package com.chatchatabc.parkingadmin.android.compose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -20,11 +21,14 @@ import androidx.compose.ui.unit.dp
 
 // TODO: Add functionality.
 @Composable
-fun VehicleSearchButtonComposable() {
+fun VehicleSearchButtonComposable(onClick: () -> Unit) {
     Card(
         Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             Modifier

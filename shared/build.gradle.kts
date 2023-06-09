@@ -56,6 +56,11 @@ kotlin {
 
                 // Realm
                 implementation("io.realm.kotlin:library-base:1.8.0")
+
+                // Timber logging
+                implementation("com.jakewharton.timber:timber:5.0.1")
+
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
             }
         }
         val commonTest by getting {
@@ -92,6 +97,8 @@ kotlin {
                 implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
                 
                 implementation("com.spoton:nats-android:2.4.2")
+
+                implementation("io.coil-kt:coil:1.3.2")
             }
         }
 //        val androidUnitTest by getting

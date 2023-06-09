@@ -40,12 +40,8 @@ abstract class AbstractAPI(val httpClient: HttpClient) {
             return httpClient.request(BASE_URL + url) {
                 this.method = method
                 this.contentType(ContentType.Application.Json)
-                pagination?.let {
-                    parameter("pageable", it)
-                }
-                if (body != null) {
-                    setBody(body)
-                }
+                pagination?.let { this.parameter("pageable", it) }
+                body?.let { setBody(it) }
                 headers?.let { this.headers.appendAll(it) }
                 setAuthorizationHeader()
             }.body()

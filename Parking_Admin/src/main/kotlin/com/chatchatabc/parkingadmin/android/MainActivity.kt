@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -55,13 +56,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
 
-        viewModel.parkingLot.value.let { parkingLot ->
-            if (parkingLot == null) {
-                viewModel.getParkingLot()
-            } else if (parkingLot.status != ParkingLot.VERIFIED) {
-                viewModel.getParkingLot()
-            }
-        }
+        viewModel.getParkingLot()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -126,103 +121,141 @@ class MainActivity : ComponentActivity() {
                         )
                     },
                     floatingActionButton = {
-                        FloatingActionButton(onClick = {
-                            startActivity(Intent(this@MainActivity, QRScanActivity::class.java))
-                        }) {
-                            Icon(
-                                Icons.Filled.QrCodeScanner,
-                                contentDescription = "Scan QR Code",
-                                Modifier.size(24.dp)
-                            )
-                        }
+                        if (parkingLot?.status == ParkingLot.VERIFIED)
+                            FloatingActionButton(onClick = {
+                                startActivity(Intent(this@MainActivity, QRScanActivity::class.java))
+                            }, modifier = Modifier.padding(16.dp)) {
+                                Icon(
+                                    Icons.Filled.QrCodeScanner,
+                                    contentDescription = "Scan QR Code",
+                                    Modifier.size(24.dp)
+                                )
+                            }
                     }
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(it),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        // TODO: Add logic for Dashboard View vs New Parking Lot Prompt
-                        if (!isLoading) {
-                            Box(
+                    // TODO: Add logic for checking verification status, maybe a refresh button?
+                    if (parkingLot?.status != 3) {
+                        Box(
+                            modifier = Modifier
+                                .padding(32.dp)
+                                .fillMaxWidth()
+                                .height(150.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.onSecondaryContainer.copy(
+                                        alpha = 0.1f
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
                                 modifier = Modifier
-                                    .padding(32.dp)
-                                    .fillMaxWidth()
-                                    .height(150.dp)
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        MaterialTheme.colorScheme.onSecondaryContainer.copy(
-                                            alpha = 0.1f
-                                        )
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    if (parkingLot == null) {
-                                        Text(
-                                            "You have no parking lots set up",
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                        Button(
-                                            onClick = {
+                                if (parkingLot == null) {
+                                    Text(
+                                        "You have no parking lots set up",
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Button(
+                                        onClick = {
+                                            startActivity(
+                                                Intent(
+                                                    this@MainActivity,
+                                                    NewParkingLotActivity::class.java
+                                                )
+                                            )
+                                        },
+                                        colors = ButtonDefaults.elevatedButtonColors()
+                                    ) {
+                                        Text("Create a new parking lot")
+                                    }
+                                } else {
+                                    when (parkingLot!!.status) {
+                                        ParkingLot.DRAFT -> {
+                                            Text(
+                                                "You have a parking lot in draft",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Button(onClick = {
                                                 startActivity(
                                                     Intent(
                                                         this@MainActivity,
                                                         NewParkingLotActivity::class.java
-                                                    )
-                                                )
-                                            },
-                                            colors = ButtonDefaults.elevatedButtonColors()
-                                        ) {
-                                            Text("Create a new parking lot")
-                                        }
-                                    } else {
-                                        when (parkingLot!!.status) {
-                                            ParkingLot.DRAFT -> {
-                                                Text(
-                                                    "You have a parking lot in draft",
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
-                                                Button(onClick = {
-                                                    startActivity(
-                                                        Intent(
-                                                            this@MainActivity,
-                                                            NewParkingLotActivity::class.java
-                                                        ).apply {
-                                                            parkingLot?.let {
-                                                                this.putExtra(
-                                                                    "parkingLot",
-                                                                    it.parkingLotUuid
-                                                                )
-                                                            }
+                                                    ).apply {
+                                                        parkingLot?.let {
+                                                            this.putExtra(
+                                                                "parkingLot",
+                                                                it.parkingLotUuid
+                                                            )
                                                         }
-                                                    )
-                                                }, colors = ButtonDefaults.elevatedButtonColors()) {
-                                                    Text("Continue editing")
-                                                }
+                                                    }
+                                                )
+                                            }, colors = ButtonDefaults.elevatedButtonColors()) {
+                                                Text("Continue editing")
                                             }
+                                        }
 
-                                            ParkingLot.PENDING_VERIFICATION -> {
-                                                Text(
-                                                    "Your parking lot is pending verification",
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
-                                                Text(
-                                                    "Check back later for updates",
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
+                                        ParkingLot.PENDING_VERIFICATION -> {
+                                            Text(
+                                                "Your parking lot is pending verification. Check back later for updates!",
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Button(onClick = {
+                                                viewModel.getParkingLot()
+                                            }, colors = ButtonDefaults.elevatedButtonColors()) {
+                                                Text("Refresh")
                                             }
                                         }
                                     }
                                 }
                             }
-                            DashboardViewComposable()
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(it),
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            // TODO: Add logic for Dashboard View vs New Parking Lot Prompt
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .padding(32.dp)
+                                        .align(Alignment.CenterHorizontally),
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                        alpha = 0.1f
+                                    )
+                                )
+                            } else {
+                                val dashboardStatistics by viewModel.dashboardStats.collectAsState()
+                                val vehicleSearchOpened by viewModel.vehicleSearchOpened.collectAsState()
+
+                                if (dashboardStatistics == null) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .padding(32.dp)
+                                            .align(Alignment.CenterHorizontally),
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                            alpha = 0.1f
+                                        )
+                                    )
+                                } else DashboardViewComposable(
+                                    dashboardStatistics,
+                                    onIncrement = {},
+                                    onDecrement = {},
+                                    onVehicleSearchClicked = {
+                                        viewModel.vehicleSearchOpened.value = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }

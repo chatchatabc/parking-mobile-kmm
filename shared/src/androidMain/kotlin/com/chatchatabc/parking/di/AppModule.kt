@@ -93,8 +93,9 @@ val MainModule = module {
     single { ParkingAPI(get()) }
     single { UserAPI(get()) }
     single { ProfileAPI(get()) }
+    single { DashboardAPI(get()) }
     viewModel {
-        MainViewModel(get(), get(), get(), get())
+        MainViewModel(get(), get(), get(), get(), get())
     }
 }
 
