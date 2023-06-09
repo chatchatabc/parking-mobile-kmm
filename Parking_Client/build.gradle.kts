@@ -80,4 +80,10 @@ dependencies {
     // TODO: Maybe move to shared?
     // https://mvnrepository.com/artifact/com.spoton/nats-android
     implementation("com.spoton:nats-android:2.4.2")
+
+    // https://mvnrepository.com/artifact/com.jakewharton.timber/timber
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Kotlinx-datetime
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 }

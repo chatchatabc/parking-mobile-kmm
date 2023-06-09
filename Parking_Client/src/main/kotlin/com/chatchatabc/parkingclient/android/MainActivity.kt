@@ -79,12 +79,20 @@ import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
+import timber.log.Timber
 
 
 class MainActivity : LocationActivity() {
     val koinModule = loadKoinModules(listOf(ParkingRealmModule, MainMapModule))
 
     val viewModel: ClientMainViewModel by inject()
+
+    override fun onResume() {
+        super.onResume()
+
+        viewModel.startListening()
+        viewModel.getAllVehicles()
+    }
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @RequiresApi(Build.VERSION_CODES.O)
@@ -95,6 +103,10 @@ class MainActivity : LocationActivity() {
 
         setContent {
             val uiState by viewModel.uiState.collectAsState()
+
+            LaunchedEffect(uiState) {
+                Timber.d("UI State: $uiState")
+            }
 
             AppTheme {
                 Surface(
@@ -224,30 +236,26 @@ class MainActivity : LocationActivity() {
                                         }
                                     }
 
-                                    val vehicleSelectorShown by viewModel.isSelectingVehicle.collectAsState()
-
-                                    var isQRShown by remember { mutableStateOf(false) }
                                     val vehicles by viewModel.vehicles.collectAsState()
 
-                                    if (vehicleSelectorShown) {
+                                    if (uiState == MainUiState.QR_VIEWER_VEHICLE_SELECT) {
                                         SelectVehicleSheet(
                                             vehicles = vehicles,
                                             onDismiss = {
-                                                viewModel.isSelectingVehicle.value = it
+                                                viewModel.uiState.value = if (it) MainUiState.QR_VIEWER else MainUiState.DEFAULT
                                             },
                                             onVehicleSelected = {
-                                                viewModel.isSelectingVehicle.value = false
                                                 viewModel.selectedVehicle.value = it
                                                 viewModel.createQRFromString(it.vehicleUuid)
-                                                isQRShown = true
+                                                viewModel.uiState.value = MainUiState.QR_VIEWER
                                             },
                                             onAddVehicleClicked = {
-                                                Intent(
-                                                    this@MainActivity,
-                                                    NewVehicleActivity::class.java
-                                                ).also {
-                                                    startActivity(it)
-                                                }
+                                                startActivity(
+                                                    Intent(
+                                                        this@MainActivity,
+                                                        NewVehicleActivity::class.java
+                                                    )
+                                                )
                                             }
                                         )
                                     }
@@ -257,9 +265,9 @@ class MainActivity : LocationActivity() {
                                     val isLoadingQR by viewModel.isLoadingQRCode.collectAsState()
                                     val qrCode by viewModel.qrCode.collectAsState()
 
-                                    if (uiState == MainUiState.SHOWING_QR && selectedVehicle != null) {
+                                    if (uiState == MainUiState.QR_VIEWER || uiState == MainUiState.PARKED_WITH_QR_VIEWER || uiState == MainUiState.LEFT_WITH_QR_VIEWER) {
                                         AlertDialog(onDismissRequest = {
-                                            isQRShown = false
+                                            viewModel.uiState.value = MainUiState.DEFAULT
                                         }) {
                                             Column {
                                                 Card(
@@ -298,7 +306,7 @@ class MainActivity : LocationActivity() {
                                                     )
                                                 ) {
                                                     Box(Modifier.padding(32.dp).fillMaxSize()) {
-                                                        if (uiState == MainUiState.CURRENT_CAR_PARKED) {
+                                                        if (uiState == MainUiState.PARKED_WITH_QR_VIEWER) {
                                                             val parkedLot by viewModel.parkedLot.collectAsState()
 
                                                             Column(
@@ -310,6 +318,31 @@ class MainActivity : LocationActivity() {
                                                                 Text(text = "Successfully Parked!", style = MaterialTheme.typography.headlineSmall)
                                                                 parkedLot?.let {
                                                                     Text(text = "Your parking in ${it.name} has been successfully confirmed!.", style = MaterialTheme.typography.bodySmall)
+                                                                }
+                                                                Button(
+                                                                    modifier = Modifier.fillMaxWidth(),
+                                                                    onClick = {
+                                                                        /*TODO*/
+                                                                    }) {
+                                                                    Text("View Details")
+                                                                }
+                                                            }
+                                                        } else if (uiState == MainUiState.LEFT_WITH_QR_VIEWER) {
+                                                            val parkedLot by viewModel.parkedLot.collectAsState()
+                                                            val invoice by viewModel.currentInvoice.collectAsState()
+
+                                                            Column(
+                                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                                modifier = Modifier.align(Alignment.Center)
+                                                            ) {
+                                                                Icon(Icons.Filled.AccessTime, null)
+                                                                Text(text = "Left Parking Lot!", style = MaterialTheme.typography.headlineSmall)
+                                                                parkedLot?.let {
+                                                                    Text(text = "You have successfully left in ${it.name} with a total cost of PHP ${invoice!!.total}!.", style = MaterialTheme.typography.bodySmall)
+                                                                    invoice?.paidAt?.let {
+                                                                        Text(text = "This session has been marked as paid.", style = MaterialTheme.typography.bodySmall)
+                                                                    }
                                                                 }
                                                                 Button(
                                                                     modifier = Modifier.fillMaxWidth(),

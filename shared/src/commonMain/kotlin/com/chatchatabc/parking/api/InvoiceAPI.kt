@@ -12,6 +12,9 @@ class InvoiceAPI(client: HttpClient): AbstractAPI(client) {
     suspend fun getActiveInvoice(vehicleUuid: String): ApiResponse<Invoice?> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/get/active/$vehicleUuid")
 
+    suspend fun getInvoice(invoiceUuid: String): ApiResponse<Invoice?> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/get/$invoiceUuid")
+
     suspend fun startInvoice(vehicleUuid: String, payload: CreateInvoiceDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Post, "$ENDPOINT/create/$vehicleUuid", payload)
 
@@ -20,4 +23,7 @@ class InvoiceAPI(client: HttpClient): AbstractAPI(client) {
 
     suspend fun payInvoice(invoiceUuid: String): ApiResponse<Unit> =
         makeRequest(HttpMethod.Post, "$ENDPOINT/pay/$invoiceUuid")
+
+    suspend fun getEstimate(invoiceUuid: String): ApiResponse<Double> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/estimate/$invoiceUuid")
 }

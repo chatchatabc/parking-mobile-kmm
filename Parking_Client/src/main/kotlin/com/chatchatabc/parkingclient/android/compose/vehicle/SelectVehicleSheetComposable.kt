@@ -71,7 +71,7 @@ fun SelectVehicleSheet(
                 VehicleItem(vehicle = vehicle) {
                     onVehicleSelected(it)
 //                    coroutineScope.launch { modalSheetState.hide() }
-                    onDismiss(false)
+                    onDismiss(true)
                 }
             }
         }

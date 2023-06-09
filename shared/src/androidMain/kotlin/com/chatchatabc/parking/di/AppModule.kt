@@ -3,14 +3,17 @@ package com.chatchatabc.parking.di
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.chatchatabc.parking.api.DashboardAPI
 import com.chatchatabc.parking.api.InvoiceAPI
 import com.chatchatabc.parking.api.LoginAPI
 import com.chatchatabc.parking.api.ParkingAPI
 import com.chatchatabc.parking.api.ProfileAPI
+import com.chatchatabc.parking.api.RateAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.api.VehicleAPI
 import com.chatchatabc.parking.httpClient
 import com.chatchatabc.parking.realm.ParkingLotRealmObject
+import com.chatchatabc.parking.service.NatsService
 import com.chatchatabc.parking.viewModel.AccountViewModel
 import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parking.viewModel.LoginViewModel
@@ -112,8 +115,10 @@ val MainMapModule = module {
     single { ProfileAPI(get()) }
     single { ParkingAPI(get()) }
     single { VehicleAPI(get()) }
+    single { InvoiceAPI(get()) }
+    single { NatsService() }
     viewModel {
-        ClientMainViewModel(get(), get(), get(), get(), get(named("parkingRealm")), get())
+        ClientMainViewModel(get(), get(), get(), get(), get(), get(named("parkingRealm")), get(), get())
     }
 }
 

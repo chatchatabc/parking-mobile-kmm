@@ -1,15 +1,16 @@
 package com.chatchatabc.parking.model
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Invoice(
-    var id: String,
+    var invoiceUuid: String,
     var estimatedParkingDurationInHours: Int,
     var total: Double?,
-    var paidAt: String?,
-    var startAt: String,
-    var endAt: String?,
-    var createdAt: String,
-    var updatedAt: String
+    var paidAt: LocalDateTime?,
+    var startAt: LocalDateTime,
+    var endAt: LocalDateTime?,
+    var createdAt: LocalDateTime,
+    var updatedAt: LocalDateTime
 )

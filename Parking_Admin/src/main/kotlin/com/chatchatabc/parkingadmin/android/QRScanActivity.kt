@@ -1,11 +1,13 @@
 package com.chatchatabc.parkingadmin.android
 
 import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import android.util.Size
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -34,7 +36,6 @@ import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.WavingHand
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -73,8 +74,14 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.vmadalin.easypermissions.EasyPermissions
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toKotlinLocalDateTime
 import org.koin.android.ext.android.inject
 import org.koin.core.context.GlobalContext.loadKoinModules
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -92,6 +99,7 @@ class QRScanActivity: ComponentActivity() {
             }
         }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,6 +118,7 @@ class QRScanActivity: ComponentActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @OptIn(ExperimentalMaterial3Api::class)
     fun openQRScanner() {
         setContent {
@@ -202,15 +211,11 @@ class QRScanActivity: ComponentActivity() {
                                                     VehicleInfo(vehicle = currentVehicle!!, title = "Vehicle Leaving")
                                                 }
                                                 currentInvoice?.let {
-                                                    EndParkingComposable(
-                                                        onCancel = {
-                                                            viewModel.cancel()
-                                                        },
-                                                        onEndParking = { paid ->
-                                                            viewModel.leave(paid)
-                                                        },
-                                                        invoice = currentInvoice!!
-                                                    )
+                                                    ParkingEndView(invoice = currentInvoice!!, onCancel = {
+                                                        viewModel.cancel()
+                                                    }, onEndInvoice = {
+                                                        viewModel.leave(it)
+                                                    })
                                                 }
                                             }
                                         }
@@ -259,7 +264,6 @@ class QRScanActivity: ComponentActivity() {
                                                 }
                                             }
                                         }
-
                                         else -> {}
                                     }
                                 }
@@ -415,11 +419,23 @@ fun VehicleInfo(vehicle: Vehicle, title: String) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ParkingEndView(invoice: Invoice, onCancel: () -> Unit, onEndInvoice: (paid: Boolean) -> Unit) {
-    Card(colors = CardDefaults.elevatedCardColors()) {
-        Text("Invoice")
-        Text("Invoice here: $invoice")
+    val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.MEDIUM)
+
+    Card(colors = CardDefaults.elevatedCardColors(), modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Invoice")
+            Text("Started", style = MaterialTheme.typography.labelLarge)
+            Text(invoice.startAt.toJavaLocalDateTime().format(formatter), style = MaterialTheme.typography.headlineSmall)
+            Text("Ending", style = MaterialTheme.typography.labelLarge)
+            Text(LocalDateTime.now().toKotlinLocalDateTime().toJavaLocalDateTime().format(formatter), style = MaterialTheme.typography.headlineSmall)
+            Text("Duration", style = MaterialTheme.typography.labelLarge)
+            Text(ChronoUnit.HOURS.between(invoice.startAt.toJavaLocalDateTime(), LocalDateTime.now().toKotlinLocalDateTime().toJavaLocalDateTime()).toString(), style = MaterialTheme.typography.headlineSmall)
+            Text("Total", style = MaterialTheme.typography.labelLarge)
+            Text("PHP ${invoice.total}", style = MaterialTheme.typography.headlineSmall)
+        }
     }
     Row(Modifier.fillMaxWidth()) {
         FilledTonalIconButton(
@@ -430,24 +446,24 @@ fun ParkingEndView(invoice: Invoice, onCancel: () -> Unit, onEndInvoice: (paid: 
                 contentColor = MaterialTheme.colorScheme.onError
             ), modifier = Modifier
         ) {
-            Text("Cancel")
+            Icon(Icons.Filled.Cancel, contentDescription = "Cancel")
         }
-        FilledTonalButton(
-            modifier = Modifier.weight(1f),
-            onClick = {
-                onEndInvoice(false)
-            }
-        ) {
-            Text("Leave w/ Payment")
-        }
-
         FilledTonalButton(
             modifier = Modifier.weight(1f),
             onClick = {
                 onEndInvoice(true)
             }
         ) {
-            Text("Leave w/o Payment")
+            Text("Mark as Paid")
+        }
+
+        FilledTonalButton(
+            modifier = Modifier.weight(1f),
+            onClick = {
+                onEndInvoice(false)
+            }
+        ) {
+            Text("End Session")
         }
     }
 }
@@ -511,40 +527,6 @@ fun StartParkingView(vehicle: Vehicle, onStartParking: (Int) -> Unit, onCancel: 
                 Text("Start Parking")
             }
 
-        }
-    }
-}
-
-@Composable
-fun EndParkingComposable(
-    onEndParking: (paid: Boolean) -> Unit,
-    onCancel: () -> Unit,
-    invoice: Invoice,
-) {
-    Card {
-        Column(Modifier.padding(16.dp)) {
-            Text("Invoice", style = MaterialTheme.typography.headlineSmall)
-            Text("Invoice here: $invoice", style = MaterialTheme.typography.bodyLarge)
-        }
-    }
-    Row {
-        FilledTonalIconButton(onClick = { onCancel() }, colors = IconButtonDefaults.filledTonalIconButtonColors(
-            containerColor = MaterialTheme.colorScheme.error,
-            contentColor = MaterialTheme.colorScheme.onError
-        )) {
-            Icon(Icons.Filled.Cancel, contentDescription = "Cancel")
-        }
-        FilledTonalButton(
-            modifier = Modifier.weight(1f),
-            onClick = {
-                onEndParking(true)
-            }
-        ) {
-            Text("Mark as Paid")
-        }
-        FilledTonalButton(onClick = { onEndParking(false) }, modifier = Modifier.weight(1f), colors = ButtonDefaults.elevatedButtonColors()
-        ) {
-            Text("End Parking")
         }
     }
 }

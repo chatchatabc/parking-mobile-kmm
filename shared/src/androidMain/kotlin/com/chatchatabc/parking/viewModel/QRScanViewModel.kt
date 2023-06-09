@@ -53,8 +53,13 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
                 return@load
             }
 
-            println("Invoice is not null")
             currentInvoice.value = invoice.data
+
+            if (currentInvoice.value != null) {
+                currentInvoice.value = currentInvoice.value!!.copy(
+                    total = invoiceAPI.getEstimate(currentInvoice.value!!.invoiceUuid).data ?: 0.0,
+                )
+            }
 
             if (currentInvoice.value == null) {
                 println("Invoice is null, parking")
@@ -77,9 +82,9 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
 
     fun leave(paid: Boolean) {
         load {
-            invoiceAPI.endInvoice(currentInvoice.value!!.id)
+            invoiceAPI.endInvoice(currentInvoice.value!!.invoiceUuid)
             if (paid) {
-                invoiceAPI.payInvoice(currentInvoice.value!!.id)
+                invoiceAPI.payInvoice(currentInvoice.value!!.invoiceUuid)
             }
             uiState.value = QRScanState.VEHICLE_LEFT
         }
