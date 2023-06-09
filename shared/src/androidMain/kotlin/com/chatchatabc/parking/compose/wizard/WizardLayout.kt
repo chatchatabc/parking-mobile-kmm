@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +35,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
 import com.chatchatabc.parking.compose.ErrorCard
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 enum class CancelState {
     NONE,
@@ -79,8 +82,14 @@ fun WizardLayout(
             // TODO: Add subtext
         }
 
+        val coroutineScope = rememberCoroutineScope()
+
         LaunchedEffect(page) {
-            pagerState.animateScrollToPage(page)
+            coroutineScope.launch {
+                Timber.d("Page: $page")
+                Timber.d("Triggering animation to page $page")
+                pagerState.animateScrollToPage(page)
+            }
         }
 
         LinearProgressIndicator(
@@ -95,7 +104,8 @@ fun WizardLayout(
             modifier = Modifier
                 .weight(1f)
                 .background(MaterialTheme.colorScheme.background),
-            beyondBoundsPageCount = 1, userScrollEnabled = false,
+            beyondBoundsPageCount = 1,
+            userScrollEnabled = false,
         ) { page ->
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),

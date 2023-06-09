@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 fun <T> WizardSegmentedSelector(
     items: List<T> = listOf<T>(),
     keyName: String,
+    disabledItems: List<T> = listOf(),
+    description: String? = null,
     itemLabels: (T) -> String,
     selected: T,
     onSelected: (T) -> Unit,
@@ -36,77 +38,105 @@ fun <T> WizardSegmentedSelector(
 ) {
 
     Column(
-        Modifier.padding(bottom = 8.dp)
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.padding(bottom = 8.dp)
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(32.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            items.forEach { item ->
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            if (item == selected) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surface
-                            }
-                        )
-                        .clickable {
-                            onSelected(item)
-                        }
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.height(40.dp).align(Alignment.Center)
-                    ) {
-                        if (item == selected) {
-                            Icon(
-                                Icons.Filled.Check,
-                                contentDescription = null,
-                                tint = if (item == selected) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface
-                                }
-                            )
-                        }
-                        Text(
-                            text = itemLabels(item),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (item == selected) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            }
-                        )
-                    }
-                }
-                if (item != items.last()) {
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(40.dp)
-                            .background(MaterialTheme.colorScheme.outline)
-                    )
-                }
-            }
+        description?.let {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
+        SegmentedSelector(
+            items = items,
+            itemLabel = itemLabels,
+            selected = selected,
+            onSelected = onSelected
+        )
         Text(
             text = errors[keyName] ?: "",
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp)
         )
+    }
+}
+
+@Composable
+fun <T> SegmentedSelector(
+    items: List<T>,
+    disabledItems: List<T> = listOf(),
+    itemLabel: (T) -> String,
+    selected: T,
+    onSelected: (T) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(32.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        items.forEach { item ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (item == selected) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surface
+                        }
+                    )
+                    .clickable {
+                        onSelected(item)
+                    }
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .height(40.dp)
+                        .align(Alignment.Center)
+                ) {
+                    if (item == selected) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = null,
+                            tint = if (item == selected) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else if (item in disabledItems) {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
+                    }
+                    Text(
+                        text = itemLabel(item),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (item == selected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else if (item in disabledItems) {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
+            }
+            if (item != items.last()) {
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(40.dp)
+                        .background(MaterialTheme.colorScheme.outline)
+                )
+            }
+        }
     }
 }

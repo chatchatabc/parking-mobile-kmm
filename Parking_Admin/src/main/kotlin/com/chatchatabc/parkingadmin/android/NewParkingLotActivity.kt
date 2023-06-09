@@ -10,20 +10,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconToggleButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.airbnb.lottie.compose.LottieAnimation
@@ -42,11 +49,16 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.compose.wizard.CancelState
+import com.chatchatabc.parking.compose.wizard.WizardCheckBox
 import com.chatchatabc.parking.compose.wizard.WizardLayout
+import com.chatchatabc.parking.compose.wizard.WizardSegmentedSelector
 import com.chatchatabc.parking.compose.wizard.WizardText
 import com.chatchatabc.parking.compose.wizard.WizardTextField
 import com.chatchatabc.parking.di.NewParkingLotModule
 import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
+import com.chatchatabc.parking.viewModel.RateBuilderViewModel
+import com.chatchatabc.parking.viewModel.RateInterval
+import com.chatchatabc.parking.viewModel.RateType
 import com.chatchatabc.parkingadmin.android.compose.ImageItemComposable
 import com.chatchatabc.parkingadmin.android.compose.LocationPickerDialogComposable
 import com.chatchatabc.parkingadmin.android.compose.PositionCardComposable
@@ -65,8 +77,9 @@ class NewParkingLotActivity : LocationActivity() {
 
     lateinit var imageUri: Uri
 
-    val onCameraPermissionGranted =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+    val realtimeValidationEnabled: Boolean = false
+
+    val onCameraPermissionGranted = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 val imageFile = File.createTempFile(
                     "image",
@@ -105,24 +118,6 @@ class NewParkingLotActivity : LocationActivity() {
             }
         }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        if (!EasyPermissions.hasPermissions(this, android.Manifest.permission.CAMERA)) {
-            EasyPermissions.requestPermissions(
-                this,
-                "Camera permission is required to take photos",
-                200,
-                android.Manifest.permission.CAMERA
-            )
-        } else {
-            onCameraPermissionGranted.launch(android.Manifest.permission.CAMERA)
-        }
-    }
-
-
     @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,16 +151,16 @@ class NewParkingLotActivity : LocationActivity() {
                             viewModel.errors.value = errors.filterKeys { key -> key != "type" }
                         },
                         title = "Register a new Parking Lot",
-                        pages = 4,
+                        pages = 5,
                         page = page,
                         onNext = {
                             if (viewModel.validate(page)) {
-                                viewModel.page.value += 1
-                                if (page == 0) {
+                                if (viewModel.parkingLotUuid.value == null) {
                                     viewModel.createDraft()
                                 } else {
                                     viewModel.saveDraft()
                                 }
+                                viewModel.page.value += 1
                             }
                         },
                         onPrevious = {
@@ -266,7 +261,8 @@ class NewParkingLotActivity : LocationActivity() {
 
                                 if (locationDialogShown) {
                                     LocationPickerDialogComposable(
-                                        realtimeLocation = location?.toLatLng(),
+                                        locationService = locationService,
+                                        initialLocation = location?.toLatLng(),
                                         onDismissRequest = { locationDialogShown = false },
                                         onLocationSelected = { latlng ->
                                             viewModel.location.value =
@@ -346,6 +342,12 @@ class NewParkingLotActivity : LocationActivity() {
                             }
                             // Page 3
                             2 -> {
+                                RateBuilder(
+                                    viewModel = viewModel.rateBuilderViewModel,
+                                )
+                            }
+                            // Page 4
+                            3 -> {
                                 LazyVerticalGrid(
                                     columns = GridCells.Fixed(2),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -392,8 +394,8 @@ class NewParkingLotActivity : LocationActivity() {
                                     }
                                 }
                             }
-                            // Page 4
-                            3 -> {
+                            // Page 5
+                            4 -> {
                                 // TODO: Create AE animation for parking lot added
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -424,7 +426,6 @@ class NewParkingLotActivity : LocationActivity() {
                                 }
                             }
                         }
-
                     }
                 }
             }
@@ -433,3 +434,118 @@ class NewParkingLotActivity : LocationActivity() {
 }
 
 fun Pair<Double, Double>.toLatLng() = LatLng(first, second)
+
+@Composable
+fun RateBuilder(
+    viewModel: RateBuilderViewModel
+) {
+    val errors by viewModel.errors.collectAsState()
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())) {
+        Text("Rate Builder", style = MaterialTheme.typography.titleMedium)
+        Text(
+            "You can set your own rates for your parking lot. The calculation of your rate will depend on the values you enter here.",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+
+        val rate by viewModel.rateType.collectAsState()
+
+        WizardSegmentedSelector(
+            keyName = "rateType",
+            label = "Rate Type",
+            description = "Choose the type of rate you want to set",
+            items = listOf(RateType.Fixed, RateType.Flexible),
+            disabledItems = listOf(RateType.Flexible),
+            itemLabels = { it.name },
+            selected = rate,
+            errors = errors,
+            onSelected = {
+                viewModel.rateType.value = it
+            }
+        )
+
+        val rateInterval by viewModel.rateInterval.collectAsState()
+
+        if (rate != RateType.None) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text("Interval", style = MaterialTheme.typography.labelLarge)
+            Text(
+                "Choose 'Hourly' or 'Daily' to determine the frequency of rate application. 'Free hours' offer no-cost parking for the initial set duration, while 'Pay for free hours when exceeded' ensures the free hours are charged if parking duration extends beyond them.",
+                style = MaterialTheme.typography.labelMedium
+            )
+
+            WizardSegmentedSelector(
+                keyName = "rateInterval",
+                label = "Interval",
+                description = "Choose the interval of your rate",
+                items = listOf(RateInterval.Hourly, RateInterval.Daily),
+                itemLabels = { it.name },
+                selected = rateInterval,
+                errors = errors,
+                onSelected = {
+                    viewModel.rateInterval.value = it
+                }
+            )
+        }
+
+        val freeHours by viewModel.freeHours.collectAsState()
+        val payForFreeHours by viewModel.payFreeHoursWhenExceeded.collectAsState()
+
+        Spacer(modifier = Modifier.height(4.dp))
+        if (rateInterval == RateInterval.Hourly) {
+            // Free Hours - WizardTextField
+            WizardTextField(
+                value = freeHours.toString(),
+                label = "Free Hours",
+                keyboardType = KeyboardType.Number,
+                errors = errors,
+                supportingText = "The number of hours that will be free of charge.",
+                onValueChange = {
+                    viewModel.freeHours.value = it.toInt()
+                },
+                keyName = "freeHours"
+            )
+            WizardCheckBox(
+                value = payForFreeHours,
+                onValueChange = {
+                    viewModel.payFreeHoursWhenExceeded.value = it
+                }, label = "Pay free hours when exceeded",
+                supportingText = "If the parking duration exceeds the free hours, the free hours will be charged.",
+                errors = errors,
+                keyName = "freeHours"
+            )
+        }
+
+        val startRate by viewModel.startRate.collectAsState()
+        val rateValue by viewModel.rateValue.collectAsState()
+
+        if (rateInterval != RateInterval.None) {
+            // Start Rate
+            WizardTextField(
+                value = startRate.toString(),
+                label = "Start Rate",
+                keyboardType = KeyboardType.Number,
+                errors = errors,
+                onValueChange = {
+                    viewModel.startRate.value = it.toDouble()
+                },
+                keyName = "startRate"
+            )
+            // Hourly/Daily Rate
+            WizardTextField(
+                value = rateValue.toString(),
+                label = "${if (rateInterval == RateInterval.Hourly) "Hourly" else "Daily"} Rate",
+                keyboardType = KeyboardType.Number,
+                errors = errors,
+                onValueChange = {
+                    viewModel.rateValue.value = it.toDouble()
+                },
+                keyName = "rateValue"
+            )
+        }
+    }
+}

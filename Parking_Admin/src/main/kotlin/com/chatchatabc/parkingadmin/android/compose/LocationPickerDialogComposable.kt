@@ -1,30 +1,30 @@
 package com.chatchatabc.parkingadmin.android.compose
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
+import com.chatchatabc.parkingadmin.android.service.LocationService
 import com.google.android.gms.maps.model.LatLng
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationPickerDialogComposable(
-    realtimeLocation: LatLng?,
+    locationService: LocationService,
+    initialLocation: LatLng?,
     onDismissRequest: () -> Unit,
-    onLocationSelected: (LatLng) -> Unit
+    onLocationSelected: (LatLng) -> Unit,
 ) {
-    Dialog(
+    val realtimeLocation by locationService.currentLocation.observeAsState()
+
+    AlertDialog(
         onDismissRequest = { onDismissRequest() },
         properties = DialogProperties(
             dismissOnBackPress = true,
@@ -36,20 +36,13 @@ fun LocationPickerDialogComposable(
         (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(0.25f)
 
         Box(
-            Modifier
-                .background(Color.Black.copy(alpha = 0.5f))
-                .fillMaxSize()
-                .blur(30.dp)
-        )
-        Card(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(3f / 4f)
-                .padding(32.dp)
+            Modifier.fillMaxSize()
         ) {
             GoogleMapsLocationPickerComposable(
-                initialLocation = realtimeLocation,
-                onLocationSet = { onLocationSelected(it) }
+                realtimeLocation = realtimeLocation,
+                initialLocation = initialLocation,
+                onLocationSet = { onLocationSelected(it) },
+                onCancel = { onDismissRequest() }
             )
         }
     }

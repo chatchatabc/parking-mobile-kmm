@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.ParkingAPI
+import com.chatchatabc.parking.api.RateAPI
 import com.chatchatabc.parking.model.ParkingLotImage
 import com.chatchatabc.parking.model.dto.ParkingLotDraftDTO
 import com.chatchatabc.parking.model.getFlags
@@ -12,8 +13,9 @@ import com.chatchatabc.parking.model.toIntFlag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
-class NewParkingLotViewModel(val api: ParkingAPI, val application: Application): BaseViewModel(api) {
+class NewParkingLotViewModel(val parkingApi: ParkingAPI, val rateApi: RateAPI, val application: Application): BaseViewModel(parkingApi, rateApi) {
     var page = MutableStateFlow(0)
 
     var errors = MutableStateFlow(mapOf<String, String>())
@@ -28,13 +30,16 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     var description = MutableStateFlow("")
     var capacity = MutableStateFlow(0)
 
-    var uuid: MutableStateFlow<String> = MutableStateFlow("")
+    var parkingLotUuid: MutableStateFlow<String?> = MutableStateFlow(null)
+    var rateUuid = MutableStateFlow<String?>(null)
 
     var images: MutableStateFlow<List<ImageUpload>> = MutableStateFlow(listOf())
 
     var location: MutableStateFlow<Pair<Double, Double>?> = MutableStateFlow(null)
 
     var progress: MutableStateFlow<Int> = MutableStateFlow(0)
+
+    val rateBuilderViewModel = RateBuilderViewModel()
 
     init {
         viewModelScope.launch {
@@ -61,18 +66,18 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
                             }
                         }
                     } else {
-                        api.uploadImage(imageByteArray) {
+                        parkingApi.uploadImage(imageByteArray) {
                             images.value = images.value.toMutableList().apply {
                                 Log.d("UPLOAD: ", "Progress: $it")
                                 progress.value = it
                             }
                         }.let {
-                            if (it.errors.isNullOrEmpty()) {
+                            if (it.errors.isEmpty()) {
                                 images.value = images.value.toMutableList().apply {
                                     progress.value = 0
-                                    if (it.errors.isNullOrEmpty()) {
+                                    if (it.errors.isEmpty()) {
                                         it.data?.let {data ->
-                                            set(indexOf(pendingUpload), pendingUpload.copy(status = ImageUploadState.UPLOADED, remoteUrl = api.getImage(data.id)))
+                                            set(indexOf(pendingUpload), pendingUpload.copy(status = ImageUploadState.UPLOADED, remoteUrl = parkingApi.getImage(data.id).also { Timber.d("URL: $it") }))
                                         }
                                     } else {
                                         println("Error uploading image")
@@ -103,7 +108,7 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
     }
 
     fun setId(id: String) {
-        this.uuid.value = id
+        this.parkingLotUuid.value = id
         restoreDraft()
     }
 
@@ -120,6 +125,9 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
             if (openingTime.value.first > closingTime.value.first || (openingTime.value.first == closingTime.value.first && openingTime.value.second > closingTime.value.second)) errors.value += "openingTime" to "Opening time must be before closing time"
         },
         2 to {
+            errors.value = rateBuilderViewModel.validateAll()
+        },
+        3 to {
             errors.value = mapOf()
             // TODO: Add validation logic for file uploads
         }
@@ -127,9 +135,10 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
 
     private fun restoreDraft() {
         viewModelScope.launch {
-            api.getParkingLot().let {
+            parkingApi.getParkingLot().let {
                 if (it.errors.isEmpty()) {
                     it.data?.let { parkingLot ->
+                        parkingLotUuid.value = parkingLot.parkingLotUuid
                         parkingLotName.value = parkingLot.name ?: ""
                         parkingLotAddress.value = parkingLot.address ?: ""
                         description.value = parkingLot.description ?: ""
@@ -142,18 +151,22 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
                                 Pair(it.substring(11, 13).toInt(), it.substring(14, 16).toInt())
                             } ?: Pair(1, 0)
                         daysOpen.value = parkingLot.openDaysFlag?.getFlags() ?: listOf()
-                        api.getImages(parkingLot.parkingLotUuid).let {
+                        parkingApi.getImages(parkingLot.parkingLotUuid).let {
                             if (it.errors.isEmpty()) {
                                 images.value = it.data?.content?.map { image ->
                                     ImageUpload(
                                         status = ImageUploadState.UPLOADED,
                                         image = image,
-                                        remoteUrl = api.getImage(image.id)
+                                        remoteUrl = parkingApi.getImage(image.id)
                                     )
                                 } ?: listOf()
                             } else {
                                 println()
                             }
+                        }
+                        parkingLot.rate?.let {
+                            rateUuid.value = it.id
+                            rateBuilderViewModel.restore(it)
                         }
                     }
                 }
@@ -163,23 +176,33 @@ class NewParkingLotViewModel(val api: ParkingAPI, val application: Application):
 
     fun saveDraft() {
         viewModelScope.launch {
-            api.saveDraft(createDTO())
+            if (page.value == 2) {
+                Timber.d("Updating rate")
+                rateApi.updateRate(parkingLotUuid.value!!, rateBuilderViewModel.createDTO())
+            } else {
+                parkingApi.saveDraft(createDTO())
+            }
         }
     }
 
     fun createDraft() {
         viewModelScope.launch {
-            if (uuid.value.isEmpty()) {
-                api.createDraft(createDTO())
+            if (parkingLotUuid.value == null) {
+                parkingApi.createDraft(createDTO())
+                parkingApi.getParkingLot().let {
+                    if (it.errors.isEmpty()) {
+                        parkingLotUuid.value = it.data?.parkingLotUuid
+                    }
+                }
             } else {
-                api.saveDraft(createDTO())
+                parkingApi.saveDraft(createDTO())
             }
         }
     }
 
     fun setToPending() {
         viewModelScope.launch {
-            val result = api.setToPending()
+            val result = parkingApi.setToPending()
             if (result.errors.isEmpty()) {
                 page.value = 3
             }

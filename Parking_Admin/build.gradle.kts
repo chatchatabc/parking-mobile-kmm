@@ -127,4 +127,12 @@ dependencies {
 
     // https://mvnrepository.com/artifact/androidx.camera/camera-core
     implementation("androidx.camera:camera-lifecycle:1.3.0-alpha07")
+
+    // Timber
+    implementation("com.jakewharton.timber:timber:5.0.1")
+
+    // Kotlinx-datetime
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    implementation("com.github.tehras:charts:0.2.4-alpha")
 }

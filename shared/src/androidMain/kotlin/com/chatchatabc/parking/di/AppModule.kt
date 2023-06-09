@@ -84,7 +84,8 @@ val NewUserModule = module {
 val NewParkingLotModule = module {
     includes(TokenModule)
     single { ParkingAPI(get()) }
-    viewModel { NewParkingLotViewModel(get(), get()) }
+    single { RateAPI(get()) }
+    viewModel { NewParkingLotViewModel(get(), get(), get()) }
 }
 
 val MainModule = module {

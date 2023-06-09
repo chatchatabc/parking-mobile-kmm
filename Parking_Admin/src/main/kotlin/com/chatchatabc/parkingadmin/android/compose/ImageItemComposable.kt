@@ -1,6 +1,5 @@
 package com.chatchatabc.parkingadmin.android.compose
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,13 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
@@ -42,11 +35,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
 import com.chatchatabc.parking.viewModel.ImageUpload
-import net.engawapg.lib.zoomable.rememberZoomState
-import net.engawapg.lib.zoomable.zoomable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,62 +61,62 @@ fun ImageItemComposable(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                val image = rememberAsyncImagePainter(model = image.remoteUrl!!)
+                AsyncImage(model = image.remoteUrl, contentDescription = "")
 
-                when (image.state) {
-                    is AsyncImagePainter.State.Error -> {
-                        Box(
-                            Modifier
-                                .padding(32.dp)
-                                .align(Alignment.Center)
-                        ) {
-                            Card(
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                            ) {
-                                Column(Modifier.padding(16.dp)) {
-                                    Icon(
-                                        Icons.Filled.Error,
-                                        contentDescription = "Error loading image",
-                                        tint = MaterialTheme.colorScheme.onErrorContainer
-                                    )
-                                    Text(
-                                        "Error loading image",
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                    Text("An error occurred while loading the image. Please try again later.")
-                                    Button(onClick = {
-                                        isMaximized = false
-                                    }) {
-                                        Text("Close")
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    is AsyncImagePainter.State.Success -> {
-                        Image(
-                            painter = image,
-                            contentDescription = null,
-                            alignment = Alignment.Center,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .zoomable(rememberZoomState(), false)
-                                .fillMaxSize()
-                        )
-                    }
-
-                    is AsyncImagePainter.State.Loading -> {
-                        CircularProgressIndicator(Modifier.align(Alignment.Center))
-                    }
-
-                    is AsyncImagePainter.State.Empty -> {
-                        CircularProgressIndicator(Modifier.align(Alignment.Center))
-                    }
-                }
+//                when (image.state) {
+//                    is AsyncImagePainter.State.Error -> {
+//                        Box(
+//                            Modifier
+//                                .padding(32.dp)
+//                                .align(Alignment.Center)
+//                        ) {
+//                            Card(
+//                                colors = CardDefaults.cardColors(
+//                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+//                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+//                                )
+//                            ) {
+//                                Column(Modifier.padding(16.dp)) {
+//                                    Icon(
+//                                        Icons.Filled.Error,
+//                                        contentDescription = "Error loading image",
+//                                        tint = MaterialTheme.colorScheme.onErrorContainer
+//                                    )
+//                                    Text(
+//                                        "Error loading image",
+//                                        style = MaterialTheme.typography.bodyMedium
+//                                    )
+//                                    Text("An error occurred while loading the image. Please try again later.")
+//                                    Button(onClick = {
+//                                        isMaximized = false
+//                                    }) {
+//                                        Text("Close")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//
+//                    is AsyncImagePainter.State.Success -> {
+//                        Image(
+//                            painter = image,
+//                            contentDescription = null,
+//                            alignment = Alignment.Center,
+//                            contentScale = ContentScale.Fit,
+//                            modifier = Modifier
+//                                .zoomable(rememberZoomState(), false)
+//                                .fillMaxSize()
+//                        )
+//                    }
+//
+//                    is AsyncImagePainter.State.Loading -> {
+//                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+//                    }
+//
+//                    is AsyncImagePainter.State.Empty -> {
+//                        CircularProgressIndicator(Modifier.align(Alignment.Center))
+//                    }
+//                }
 
                 Row(modifier = Modifier.align(Alignment.TopEnd)) {
                     FilledTonalIconButton(
@@ -193,70 +183,14 @@ fun ImageItemComposable(
         }
     ) {
         image.remoteUrl?.let {
-            val image = rememberAsyncImagePainter(model = it)
-            when (image.state) {
-                is AsyncImagePainter.State.Error -> {
-                    Box(
-                        Modifier
-                            .padding(32.dp)
-                            .align(Alignment.Center)
-                    ) {
-                        Card(
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Icon(
-                                    Icons.Filled.Error,
-                                    contentDescription = "Error loading image",
-                                    tint = MaterialTheme.colorScheme.onErrorContainer
-                                )
-                                Text(
-                                    "Error loading image",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Text("An error occurred while loading the image. Please try again later.")
-                                Button(onClick = {
-                                    isMaximized = false
-                                }) {
-                                    Text("Close")
-                                }
-                            }
-                        }
-                    }
-                }
-
-                is AsyncImagePainter.State.Success -> {
-                    Image(
-                        painter = image,
-                        contentDescription = null,
-                        alignment = Alignment.Center,
-                        contentScale = ContentScale.FillWidth
-                    )
-
-                    FilledIconButton(
-                        onClick = { onDelete() }, modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.DeleteForever,
-                            contentDescription = "Delete",
-                            Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                is AsyncImagePainter.State.Loading -> {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-
-                is AsyncImagePainter.State.Empty -> {
-                    CircularProgressIndicator(Modifier.align(Alignment.Center))
-                }
-            }
+            AsyncImage(model = image.remoteUrl, "", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         }
     }
+}
+
+enum class PainterState {
+    NONE,
+    LOADING,
+    SUCCESS,
+    ERROR
 }

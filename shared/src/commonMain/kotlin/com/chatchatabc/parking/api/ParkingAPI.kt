@@ -1,5 +1,6 @@
 package com.chatchatabc.parking.api
 
+import com.chatchatabc.parking.Config.BASE_URL
 import com.chatchatabc.parking.model.ParkingLot
 import com.chatchatabc.parking.model.ParkingLotImage
 import com.chatchatabc.parking.model.dto.ParkingLotDraftDTO
@@ -38,7 +39,7 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
      * Let the image loader library handle the loading of the image.
      * This function will only return the url of the image.
      */
-    fun getImage(id: String): String = "$ENDPOINT/get-image/$id"
+    fun getImage(id: String): String = "$BASE_URL$ENDPOINT/get-image/$id"
 
     suspend fun getImages(parkingLotUuid: String, pagination: Pagination? = null): ApiResponse<Page<ParkingLotImage>> =
         makeRequest(
@@ -47,7 +48,7 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
             pagination = pagination,
         )
 
-    suspend fun getAllParkingLots(): ApiResponse<List<ParkingLot>> =
+    suspend fun getAllParkingLots(): ApiResponse<Page<ParkingLot>> =
         makeRequest(
             HttpMethod.Get,
             "$ENDPOINT/get-all",

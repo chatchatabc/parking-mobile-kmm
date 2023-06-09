@@ -93,8 +93,6 @@ abstract class AbstractAPI(val httpClient: HttpClient) {
                 headers?.let { this.headers.appendAll(it) }
                 contentType(ContentType.Application.Json)
                 setAuthorizationHeader()
-            }.also {
-                println("makeUploadRequest: $it")
             }.body()
         }.getOrElse {
             it.printStackTrace()
