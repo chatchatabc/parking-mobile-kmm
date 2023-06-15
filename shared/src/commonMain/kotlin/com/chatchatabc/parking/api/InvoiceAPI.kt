@@ -10,10 +10,10 @@ class InvoiceAPI(client: HttpClient): AbstractAPI(client) {
     val ENDPOINT: String = "/api/invoice"
 
     suspend fun getActiveInvoice(vehicleUuid: String): ApiResponse<Invoice?> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get/active/$vehicleUuid")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/active/$vehicleUuid")
 
     suspend fun getInvoice(invoiceUuid: String): ApiResponse<Invoice?> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get/$invoiceUuid")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/$invoiceUuid")
 
     suspend fun startInvoice(vehicleUuid: String, payload: CreateInvoiceDTO): ApiResponse<Unit> =
         makeRequest(HttpMethod.Post, "$ENDPOINT/create/$vehicleUuid", payload)

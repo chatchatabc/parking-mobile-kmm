@@ -16,5 +16,5 @@ class UserAPI(val client: HttpClient): AbstractAPI(client) {
         makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
 
     suspend fun getNotificationId(): ApiResponse<UserNotification> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get-notification-id")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/notification-id")
 }

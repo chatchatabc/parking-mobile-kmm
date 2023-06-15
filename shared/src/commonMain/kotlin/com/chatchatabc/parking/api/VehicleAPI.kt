@@ -14,8 +14,8 @@ class VehicleAPI(val client: HttpClient): AbstractAPI(client) {
         makeRequest(HttpMethod.Post, "$ENDPOINT/register", payload)
 
     suspend fun getAllVehicles(): ApiResponse<Page<Vehicle>> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get-my-vehicles?limit=1000")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/my-vehicles?limit=1000")
 
     suspend fun getVehicle(vehicleUuid: String): ApiResponse<Vehicle> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get/$vehicleUuid")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/$vehicleUuid")
 }

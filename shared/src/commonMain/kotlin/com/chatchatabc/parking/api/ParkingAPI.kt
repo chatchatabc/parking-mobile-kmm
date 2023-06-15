@@ -25,7 +25,7 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
         makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
 
     suspend fun getParkingLot(): ApiResponse<ParkingLot> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/me")
 
     suspend fun getParkingLot(parkingLotUuid: String): ApiResponse<ParkingLot> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/get/$parkingLotUuid")
@@ -39,12 +39,12 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
      * Let the image loader library handle the loading of the image.
      * This function will only return the url of the image.
      */
-    fun getImage(id: String): String = "$BASE_URL$ENDPOINT/get-image/$id"
+    fun getImage(id: String): String = "$BASE_URL$ENDPOINT/image/$id"
 
     suspend fun getImages(parkingLotUuid: String, pagination: Pagination? = null): ApiResponse<Page<ParkingLotImage>> =
         makeRequest(
             HttpMethod.Get,
-            "$ENDPOINT/get-images/$parkingLotUuid",
+            "$ENDPOINT/images/$parkingLotUuid",
             pagination = pagination,
         )
 
