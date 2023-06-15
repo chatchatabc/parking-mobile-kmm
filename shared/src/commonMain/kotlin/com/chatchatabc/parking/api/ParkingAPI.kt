@@ -12,7 +12,7 @@ import io.ktor.http.HttpMethod
 
 typealias Token = String
 
-class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
+class ParkingAPI(val client: HttpClient) : AbstractAPI(client) {
     val ENDPOINT = "/api/parking-lot"
 
     suspend fun setToPending(): ApiResponse<ParkingLot> =
@@ -27,11 +27,17 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
     suspend fun getParkingLot(): ApiResponse<ParkingLot> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
 
+    /**
+     * Get Parking Lot by parkingLotUuid
+     */
     suspend fun getParkingLot(parkingLotUuid: String): ApiResponse<ParkingLot> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/get/$parkingLotUuid")
+        makeRequest(HttpMethod.Get, "$ENDPOINT/$parkingLotUuid")
 
-    suspend fun uploadImage(image: ByteArray, onProgress: (Int) -> Unit): ApiResponse<ParkingLotImage> =
-        makeUploadRequest( "$ENDPOINT/upload-image", image, onUploadUpdate = { sent, totalSize ->
+    suspend fun uploadImage(
+        image: ByteArray,
+        onProgress: (Int) -> Unit
+    ): ApiResponse<ParkingLotImage> =
+        makeUploadRequest("$ENDPOINT/upload-image", image, onUploadUpdate = { sent, totalSize ->
             onProgress((sent.toDouble() / totalSize.toDouble() * 100).toInt())
         })
 
@@ -41,17 +47,26 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
      */
     fun getImage(id: String): String = "$BASE_URL$ENDPOINT/image/$id"
 
-    suspend fun getImages(parkingLotUuid: String, pagination: Pagination? = null): ApiResponse<Page<ParkingLotImage>> =
+    /**
+     * Let the image loader library handle the loading of the image.
+     * This function will only return the url of the featured image of a Parking Lot.
+     */
+    fun getFeaturedImage(parkingLotUuid: String): String =
+        "$BASE_URL$ENDPOINT/featured-image/$parkingLotUuid"
+
+    suspend fun getImages(
+        parkingLotUuid: String,
+        pagination: Pagination? = null
+    ): ApiResponse<Page<ParkingLotImage>> =
         makeRequest(
             HttpMethod.Get,
             "$ENDPOINT/images/$parkingLotUuid",
             pagination = pagination,
         )
 
+    /**
+     * Get all parking lots
+     */
     suspend fun getAllParkingLots(pagination: Pagination? = null): ApiResponse<Page<ParkingLot>> =
-        makeRequest(
-            HttpMethod.Get,
-            "$ENDPOINT/get-all",
-            pagination = pagination,
-        )
+        makeRequest(HttpMethod.Get, ENDPOINT, pagination = pagination)
 }
