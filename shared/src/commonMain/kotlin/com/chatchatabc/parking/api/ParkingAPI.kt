@@ -48,9 +48,10 @@ class ParkingAPI(val client: HttpClient): AbstractAPI(client) {
             pagination = pagination,
         )
 
-    suspend fun getAllParkingLots(): ApiResponse<Page<ParkingLot>> =
+    suspend fun getAllParkingLots(pagination: Pagination? = null): ApiResponse<Page<ParkingLot>> =
         makeRequest(
             HttpMethod.Get,
             "$ENDPOINT/get-all",
+            pagination = pagination,
         )
 }
