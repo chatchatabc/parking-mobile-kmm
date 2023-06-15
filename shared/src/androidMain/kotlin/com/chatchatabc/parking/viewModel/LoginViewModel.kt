@@ -1,15 +1,21 @@
 package com.chatchatabc.parking.viewModel
 
 import android.content.SharedPreferences
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.LoginAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.model.dto.LoginDTO
 import com.chatchatabc.parking.model.dto.OTPLoginDTO
-import io.ktor.http.isSuccess
+import com.chatchatabc.parking.model.response.FlowCall
+import com.chatchatabc.parking.model.response.flowCall
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 // TODO: Better error handling
@@ -17,6 +23,9 @@ class LoginViewModel(
     val loginAPI: LoginAPI,
     val sharedPreferences: SharedPreferences,
 ): ViewModel() {
+    val isLoggedIn = MutableStateFlow(false)
+    val hasUserDetails = MutableStateFlow(false)
+
     val phone = MutableStateFlow("")
     val username = MutableStateFlow("")
     val tos = MutableStateFlow(false)
@@ -26,83 +35,76 @@ class LoginViewModel(
 
     val requiresUsername = MutableStateFlow(false)
 
+    val requestState = MutableStateFlow(FlowCall.State.NOTHING)
+
     fun startTimer() {
         timer.value = 60
+
         viewModelScope.launch {
             while (timer.value > 0) {
                 timer.value -= 1
-                kotlinx.coroutines.delay(1000)
+                delay(1000)
             }
         }
     }
-
-    val isLoading = MutableStateFlow(false)
-    val isLoggedIn = MutableStateFlow(false)
-
-    var hasUserDetails = false
 
     var uiState = MutableStateFlow(LoginState.PHONE)
     var appErrors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
 
     fun validateAndSubmitPhone(loginType: LoginType) {
         appErrors.value = mapOf()
-        if (phone.value.length < 10) appErrors.value += mapOf("phone" to "Invalid phone number.")
+        if (phone.value.length < 8) appErrors.value += mapOf("phone" to "Invalid phone number.")
         if (loginType == LoginType.MEMBER && username.value.length < 8) appErrors.value += mapOf("username" to "Invalid username.")
         if (!tos.value) appErrors.value += mapOf("tos" to "Please accept the terms of service before continuing")
-        if (appErrors.value.isNotEmpty()) return
-        viewModelScope.launch {
-            isLoading.value = true
-            try {
-                with (loginAPI.login(LoginDTO(phone.value, username.value))) {
-                    if (errors.isNullOrEmpty()) uiState.value = LoginState.OTP
-                    else appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
-                }
-            } catch (e: Exception) {
-                Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
-            }
-            isLoading.value = false
-        }
+        if (appErrors.value.isNotEmpty()) return else submitPhone()
     }
+
+    fun submitPhone() = flow {
+        emit(FlowCall.loading())
+        delay(1000)
+        emit(loginAPI.login(LoginDTO("+63${phone.value}", username.value)).flowCall)
+    }.onEach {
+        requestState.value = it.state
+        if (it.isSuccess) uiState.value = LoginState.OTP
+        if (it.isError) appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
+    }.launchIn(viewModelScope)
 
     fun validateAndSubmitOTP() {
-        viewModelScope.launch {
-            isLoading.value = true
-            try {
-                with(loginAPI.verifyOTP(OTPLoginDTO(phone.value, otp.value))) {
-                    if (status.isSuccess()) {
-                        val token = headers["X-Access-Token"]?.also {
-                            Log.d("TOKEN", it)
-                            sharedPreferences.edit().putString("authToken", it).apply()
-                        }
-
-                        if (token == null) {
-                            appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
-                            return@launch
-                        }
-
-                        UserAPI(loginAPI.httpClient).apply {
-                            setToken(token)
-                        }.getUser().let {
-                            if (it.errors.isEmpty()) {
-                                hasUserDetails = it.data!!.firstName != null
-                                isLoggedIn.value = true
-                            } else {
-                                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
-                                uiState.value = LoginState.PHONE
-                            }
-                        }
-                    } else appErrors.value = mapOf("otp" to "Invalid OTP. Please try again.")
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                Log.d("ERROR", "Failed: ${e.message}")
-                appErrors.value = mapOf("phone" to "Something went wrong. Please try again.")
-                uiState.value = LoginState.PHONE
-            }
-            isLoading.value = false
-        }
+        appErrors.value = mapOf()
+        if (otp.value.length < 6) appErrors.value += mapOf("otp" to "Invalid OTP.")
+        if (appErrors.value.isNotEmpty()) return else submitOTP()
     }
+
+    fun submitOTP() = flow<FlowCall<HttpResponse>> {
+        emit(FlowCall.loading())
+        delay(1000)
+        loginAPI.verifyOTP(OTPLoginDTO("+63${phone.value}", otp.value)).let {
+
+            if (it.status == HttpStatusCode.OK) {
+                val token = it.headers["X-Access-Token"]
+
+                if (token == null) emit(FlowCall.error(message = "The server did not return a token. Please try again."))
+                else {
+                    sharedPreferences.edit().putString("authToken", token).apply()
+
+                    UserAPI(loginAPI.httpClient).apply {
+                        setToken(token)
+                    }.getUser().let { (data, errors) ->
+                        if (errors.isEmpty()) {
+                            hasUserDetails.value = data?.firstName != null
+                            isLoggedIn.value = true
+                            emit(FlowCall.success())
+                        } else {
+                            emit(FlowCall.error(message = "The server did not recognize the token. Please try again."))
+                        }
+                    }
+                    emit(FlowCall.success(null))
+                }
+            } else emit(FlowCall.error(message = "Invalid OTP. Please try again."))
+        }
+    }.onEach {
+        requestState.value = it.state
+    }.launchIn(viewModelScope)
 }
 
 enum class LoginType {
