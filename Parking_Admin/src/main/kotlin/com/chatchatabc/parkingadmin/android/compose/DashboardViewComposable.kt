@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +33,7 @@ import com.chatchatabc.parking.compose.Theme.extendedColors
 import com.chatchatabc.parking.model.DashboardStatistics
 import com.github.tehras.charts.piechart.PieChart
 import com.github.tehras.charts.piechart.PieChartData
+import com.github.tehras.charts.piechart.renderer.SimpleSliceDrawer
 
 @Composable
 fun DashboardViewComposable(
@@ -37,6 +41,7 @@ fun DashboardViewComposable(
     onIncrement: () -> Unit,
     onDecrement: () -> Unit,
     onVehicleSearchClicked: () -> Unit,
+    isRefreshing: Boolean = false,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -44,6 +49,7 @@ fun DashboardViewComposable(
     ) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.fillMaxWidth()) {
+                if (isRefreshing) LinearProgressIndicator(Modifier.fillMaxWidth(), color = MaterialTheme.extendedColors.seedGreen)
                 Column(Modifier.padding(16.dp)) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -128,6 +134,7 @@ fun DashboardViewComposable(
 
                     PieChart(
                         modifier = Modifier.fillMaxSize(),
+                        sliceDrawer = SimpleSliceDrawer(40.0f),
                         pieChartData = PieChartData(
                             listOf(
                                 PieChartData.Slice(
@@ -168,8 +175,13 @@ fun DashboardViewComposable(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(Icons.Filled.ArrowUpward, null, Modifier.size(16.dp))
-                            Text("32.2%", style = MaterialTheme.typography.labelSmall)
+                            val trafficPercentage = stats?.trafficPercentage ?: 0.0
+                            Icon(when {
+                                trafficPercentage == 0.0 -> Icons.Filled.Remove
+                                trafficPercentage < 0.0 -> Icons.Filled.ArrowDownward
+                                else -> Icons.Filled.ArrowUpward
+                                      }, null, Modifier.size(16.dp))
+                            Text("${stats?.trafficPercentage ?: "~~"}%", style = MaterialTheme.typography.labelSmall)
                         }
                     }
                     Text(
@@ -197,12 +209,17 @@ fun DashboardViewComposable(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Icon(Icons.Filled.ArrowUpward, null, Modifier.size(16.dp))
-                            Text("32.2%", style = MaterialTheme.typography.labelSmall)
+                            val profitPercentage = stats?.profitPercentage ?: 0.0
+                            Icon(when {
+                                profitPercentage == 0.0 -> Icons.Filled.Remove
+                                profitPercentage < 0.0 -> Icons.Filled.ArrowDownward
+                                else -> Icons.Filled.ArrowUpward
+                            }, null, Modifier.size(16.dp))
+                            Text("${stats?.profitPercentage ?: "~~"}%", style = MaterialTheme.typography.labelSmall)
                         }
                     }
                     Text(
-                        "₱${stats?.traffic ?: 0}",
+                        "₱${stats?.profit ?: 0}",
                         style = MaterialTheme.typography.displaySmall.copy(
                             platformStyle = PlatformTextStyle(
                                 includeFontPadding = false
