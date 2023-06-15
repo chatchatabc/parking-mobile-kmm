@@ -8,6 +8,7 @@ data class Route(
     val name: String?,
     val description: String?,
     val status: Int,
+    val points: String,
     val createdAt: String,
     val updatedAt: String?,
 ) {
