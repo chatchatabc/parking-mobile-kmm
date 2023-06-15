@@ -9,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -23,9 +24,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconToggleButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,10 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.compose.wizard.CancelState
@@ -131,6 +130,9 @@ class NewParkingLotActivity : LocationActivity() {
                 Column(modifier = Modifier.fillMaxSize()) {
                     val page by viewModel.page.collectAsState()
                     var cancelState by rememberSaveable { mutableStateOf(CancelState.NONE) }
+
+                    val isLoading by viewModel.isLoading.collectAsState()
+
                     val parkingLotName by viewModel.parkingLotName.collectAsState()
                     val parkingLotAddress by viewModel.parkingLotAddress.collectAsState()
                     val location by viewModel.location.collectAsState()
@@ -150,6 +152,7 @@ class NewParkingLotActivity : LocationActivity() {
                         onErrorDismiss = {
                             viewModel.errors.value = errors.filterKeys { key -> key != "type" }
                         },
+                        isLoading = isLoading,
                         title = "Register a new Parking Lot",
                         pages = 5,
                         page = page,
@@ -171,7 +174,6 @@ class NewParkingLotActivity : LocationActivity() {
                             if (errors.isEmpty()) {
                                 viewModel.setToPending()
                             }
-
                         },
                         cancelState = cancelState,
                         onFinish = {
@@ -188,6 +190,9 @@ class NewParkingLotActivity : LocationActivity() {
                         when (page) {
                             // Page 1
                             0 -> Column(
+                                modifier = Modifier.fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(32.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 WizardText(text = "Parking Lot Details")
@@ -276,6 +281,10 @@ class NewParkingLotActivity : LocationActivity() {
                             }
                             // Page 2
                             1 -> Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(32.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 WizardText(text = "Opening Time")
@@ -352,6 +361,7 @@ class NewParkingLotActivity : LocationActivity() {
                                     columns = GridCells.Fixed(2),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    contentPadding = PaddingValues(32.dp),
                                 ) {
                                     this.item(span = { GridItemSpan(2) }) {
                                         Column(
@@ -399,29 +409,12 @@ class NewParkingLotActivity : LocationActivity() {
                                 // TODO: Create AE animation for parking lot added
                                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        // Lottie
-                                        val lottieComposition = rememberLottieComposition(
-                                            spec = LottieCompositionSpec.RawRes(R.raw.splash)
-                                        )
-
-                                        val lottieAnimation = animateLottieCompositionAsState(
-                                            composition = lottieComposition.value
-                                        )
-
-                                        LottieAnimation(
-                                            composition = lottieComposition.value,
-                                            progress = { lottieAnimation.value },
-                                            modifier = Modifier
-                                                .size(200.dp)
-                                                .padding(bottom = 32.dp)
+                                        Icon(Icons.Default.CheckCircle,
+                                            contentDescription = "Parking Lot Added",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(64.dp)
                                         )
                                         Text("Your Parking Lot has been added!")
-                                        Button(onClick = {
-                                            // TODO: Redirect back to parking lot page
-                                            finish()
-                                        }) {
-                                            Text(text = "Okay")
-                                        }
                                     }
                                 }
                             }
@@ -444,7 +437,8 @@ fun RateBuilder(
     Column(
         Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())) {
+            .verticalScroll(rememberScrollState())
+            .padding(32.dp)) {
         Text("Rate Builder", style = MaterialTheme.typography.titleMedium)
         Text(
             "You can set your own rates for your parking lot. The calculation of your rate will depend on the values you enter here.",
@@ -505,7 +499,7 @@ fun RateBuilder(
                 errors = errors,
                 supportingText = "The number of hours that will be free of charge.",
                 onValueChange = {
-                    viewModel.freeHours.value = it.toInt()
+                    viewModel.freeHours.value = it
                 },
                 keyName = "freeHours"
             )
@@ -531,7 +525,7 @@ fun RateBuilder(
                 keyboardType = KeyboardType.Number,
                 errors = errors,
                 onValueChange = {
-                    viewModel.startRate.value = it.toDouble()
+                    viewModel.startRate.value = it
                 },
                 keyName = "startRate"
             )
@@ -542,7 +536,7 @@ fun RateBuilder(
                 keyboardType = KeyboardType.Number,
                 errors = errors,
                 onValueChange = {
-                    viewModel.rateValue.value = it.toDouble()
+                    viewModel.rateValue.value = it
                 },
                 keyName = "rateValue"
             )
