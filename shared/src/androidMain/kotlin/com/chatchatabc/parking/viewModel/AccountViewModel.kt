@@ -13,11 +13,9 @@ class AccountViewModel(
 
     val logoutPopupOpened = MutableStateFlow(false)
 
-    fun clearAuthToken() {
-        viewModelScope.launch {
+    fun clearAuthToken() = viewModelScope.launch {
             // Change activity to loginActivity
             sharedPreferences.edit().remove("authToken").apply()
             profileAPI.logout()
         }
-    }
 }
