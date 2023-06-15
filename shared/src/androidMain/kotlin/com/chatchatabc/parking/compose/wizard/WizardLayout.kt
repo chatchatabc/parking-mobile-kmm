@@ -51,6 +51,7 @@ fun WizardLayout(
     onErrorDismiss: () -> Unit,
     title: String,
     subtext: String? = null,
+    isLoading: Boolean,
     pages: Int,
     page: Int,
     finishCTAText: String = "Finish",
@@ -67,6 +68,7 @@ fun WizardLayout(
     val progress by animateFloatAsState(targetValue = (1f / (pages - 1)) * (page + 1))
 
     Column(modifier = Modifier.fillMaxSize()) {
+        // Title and Subtext Container
         Box(
             Modifier
                 .fillMaxWidth()
@@ -92,37 +94,36 @@ fun WizardLayout(
             }
         }
 
-        LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
-            progress = progress
-        )
+        // Progress Bar
+        if (isLoading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth(),)
+        else LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), progress = progress)
 
+        // Pager
         HorizontalPager(
             state = pagerState,
-            pageCount = 4,
+            pageCount = pages,
             verticalAlignment = Alignment.Top,
             modifier = Modifier
                 .weight(1f)
                 .background(MaterialTheme.colorScheme.background),
             beyondBoundsPageCount = 1,
-            userScrollEnabled = false,
+            userScrollEnabled = false
         ) { page ->
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(32.dp)
-            ) {
+//            Column(
+//                verticalArrangement = Arrangement.spacedBy(16.dp),
+//                modifier = Modifier.fillMaxSize().padding(32.dp, 16.dp)
+//            ) {
                 errors["global"]?.let {
                     ErrorCard(error = listOf(it)) {
                         onErrorDismiss()
                     }
                 }
 
-                Box {
-                    content(page)
-                }
-            }
+                content(page)
+//            }
         }
 
+        // Action Buttons
         Row(
             Modifier
                 .fillMaxWidth()
@@ -144,7 +145,7 @@ fun WizardLayout(
                     onClick = {
                         onPrevious()
                     },
-                    enabled = true,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                 ) {
@@ -158,7 +159,7 @@ fun WizardLayout(
                     onClick = {
                         onNext()
                     },
-                    enabled = true,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                 ) {
@@ -172,7 +173,7 @@ fun WizardLayout(
                     onClick = {
                         onFinish()
                     },
-                    enabled = true,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                 ) {
@@ -186,7 +187,7 @@ fun WizardLayout(
                 Button(
                     colors = ButtonDefaults.filledTonalButtonColors(),
                     onClick = { onSubmit() },
-                    enabled = true,
+                    enabled = !isLoading,
                     modifier = Modifier
                         .weight(1f)
                 ) {
