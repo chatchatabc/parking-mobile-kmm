@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.compose.wizard.CancelState
@@ -38,9 +39,11 @@ class NewVehicleActivity: ComponentActivity() {
         setContent {
             val page by viewModel.page.collectAsState()
             val name by viewModel.name.collectAsState()
-            val platenumber by viewModel.platenumber.collectAsState()
+            val platenumber by viewModel.plateNumber.collectAsState()
             val type by viewModel.type.collectAsState()
             val errors by viewModel.errors.collectAsState()
+
+            val isLoading by viewModel.isLoading.collectAsState()
 
             var cancelState by rememberSaveable { mutableStateOf(CancelState.NONE) }
 
@@ -52,6 +55,7 @@ class NewVehicleActivity: ComponentActivity() {
                         onErrorDismiss = {
                             viewModel.errors.value = errors.filterKeys { key -> key != "type" }
                         },
+                        isLoading = isLoading,
                         title = "Register a New Vehicle",
                         pages = 2,
                         page = page,
@@ -102,10 +106,10 @@ class NewVehicleActivity: ComponentActivity() {
                                     errors = errors
                                 )
                                 WizardTextField(
-                                    value = platenumber,
+                                    value = platenumber.uppercase(),
                                     keyName = "platenumber",
                                     onValueChange = {
-                                        viewModel.platenumber.value = it
+                                        viewModel.plateNumber.value = it
                                         viewModel.errors.value = errors.filterKeys { key -> key != "platenumber" }
                                     },
                                     label = "Plate Number",
@@ -113,13 +117,13 @@ class NewVehicleActivity: ComponentActivity() {
                                     supportingText = when (type) {
                                         VehicleType.CAR -> "e.g. ABC-1234 or AB-12345 (for temporary plates)"
                                         VehicleType.MOTORCYCLE -> "e.g. ABC-1234 or 1234-1234567 (for temporary plates)"
-                                        VehicleType.NONE -> null
+                                        VehicleType.NONE -> "Select a vehicle type to view valid plate number format."
                                     }
                                 )
                             }
                             1 -> {
-                                Box(Modifier.fillMaxSize()) {
-                                    Column {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Icon(Icons.Filled.Check, "Success")
                                         Text("Vehicle successfully registered!")
                                     }

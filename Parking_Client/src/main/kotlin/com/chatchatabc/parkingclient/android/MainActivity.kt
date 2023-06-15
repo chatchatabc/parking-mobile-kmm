@@ -64,6 +64,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindowProvider
+import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.activity.LocationActivity
 import com.chatchatabc.parking.compose.Theme.AppTheme
 import com.chatchatabc.parking.di.MainMapModule
@@ -77,6 +78,7 @@ import com.chatchatabc.parkingclient.android.compose.main.ParkingLotHighlightCom
 import com.chatchatabc.parkingclient.android.compose.main.SearchBarComposable
 import com.chatchatabc.parkingclient.android.compose.vehicle.SelectVehicleSheet
 import com.google.android.gms.maps.model.LatLng
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 import timber.log.Timber
@@ -90,7 +92,9 @@ class MainActivity : LocationActivity() {
     override fun onResume() {
         super.onResume()
 
-        viewModel.startListening()
+        viewModel.viewModelScope.launch {
+            viewModel.startListening()
+        }
         viewModel.getAllVehicles()
     }
 
@@ -115,7 +119,7 @@ class MainActivity : LocationActivity() {
                 ) {
                     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
                     val logoutPopupOpened by viewModel.logoutPopupOpened.collectAsState()
-                    val visibleParkingLots by viewModel.visibleParkingLots.collectAsState(listOf())
+                    val visibleParkingLots by viewModel.visibleParkingLots.collectAsState()
                     val currentPage by viewModel.currentPage.collectAsState()
 
                     Scaffold(
@@ -206,7 +210,6 @@ class MainActivity : LocationActivity() {
                                         // Primary background color
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .verticalScroll(rememberScrollState())
                                             .background(MaterialTheme.colorScheme.primary)
                                             .padding(16.dp),
                                         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -223,7 +226,7 @@ class MainActivity : LocationActivity() {
                                         // Map
                                         if (hasPermission) {
                                             MapViewComposable(
-                                                pins = visibleParkingLots,
+                                                pins = visibleParkingLots.response ?: listOf(),
                                                 modifier = Modifier
                                                     .clip(RoundedCornerShape(16.dp))
                                                     .weight(1f),
@@ -236,11 +239,11 @@ class MainActivity : LocationActivity() {
                                         }
                                     }
 
-                                    val vehicles by viewModel.vehicles.collectAsState()
+                                    val vehiclesState by viewModel.vehicles.collectAsState()
 
                                     if (uiState == MainUiState.QR_VIEWER_VEHICLE_SELECT) {
                                         SelectVehicleSheet(
-                                            vehicles = vehicles,
+                                            state = vehiclesState,
                                             onDismiss = {
                                                 viewModel.uiState.value = if (it) MainUiState.QR_VIEWER else MainUiState.DEFAULT
                                             },
@@ -256,14 +259,15 @@ class MainActivity : LocationActivity() {
                                                         NewVehicleActivity::class.java
                                                     )
                                                 )
+                                            },
+                                            onVehicleRefresh = {
+                                                viewModel.getAllVehicles()
                                             }
                                         )
                                     }
 
                                     val selectedVehicle by viewModel.selectedVehicle.collectAsState()
-
-                                    val isLoadingQR by viewModel.isLoadingQRCode.collectAsState()
-                                    val qrCode by viewModel.qrCode.collectAsState()
+                                    val qrCode by viewModel.qrCodeState.collectAsState()
 
                                     if (uiState == MainUiState.QR_VIEWER || uiState == MainUiState.PARKED_WITH_QR_VIEWER || uiState == MainUiState.LEFT_WITH_QR_VIEWER) {
                                         AlertDialog(onDismissRequest = {
@@ -353,14 +357,14 @@ class MainActivity : LocationActivity() {
                                                                 }
                                                             }
                                                         } else {
-                                                            if (isLoadingQR) {
+                                                            if (qrCode.isLoading) {
                                                                 CircularProgressIndicator(
                                                                     Modifier.align(
                                                                         Alignment.Center
                                                                     )
                                                                 )
                                                             } else {
-                                                                qrCode?.let {
+                                                                qrCode.response?.let {
                                                                     Image(
                                                                         it.asImageBitmap(),
                                                                         contentDescription = "Parking QR Code",
