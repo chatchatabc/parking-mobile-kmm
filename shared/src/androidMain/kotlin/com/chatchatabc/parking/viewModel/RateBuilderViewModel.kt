@@ -4,24 +4,27 @@ import com.chatchatabc.parking.model.Rate
 import com.chatchatabc.parking.model.dto.UpdateRateDTO
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class RateBuilderViewModel: BaseViewModel() {
+class RateBuilderViewModel : BaseViewModel() {
     val rateType: MutableStateFlow<RateType> = MutableStateFlow(RateType.None)
     val rateInterval: MutableStateFlow<RateInterval> = MutableStateFlow(RateInterval.None)
 
-    val freeHours: MutableStateFlow<Int> = MutableStateFlow(0)
+    val freeHours: MutableStateFlow<String> = MutableStateFlow("0")
     val payFreeHoursWhenExceeded: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val startRate: MutableStateFlow<Double> = MutableStateFlow(0.0)
-    val rateValue: MutableStateFlow<Double> = MutableStateFlow(0.0)
+    val startRate: MutableStateFlow<String> = MutableStateFlow("0")
+    val rateValue: MutableStateFlow<String> = MutableStateFlow("0")
 
     val errors: MutableStateFlow<Map<String, String>> = MutableStateFlow(mapOf())
 
     fun validateAll(): Map<String, String> {
         val errors: MutableMap<String, String> = mutableMapOf()
         if (rateType.value == RateType.None) errors["rateType"] = "Please select a rate type"
-        if (rateInterval.value == RateInterval.None) errors["rateInterval"] = "Please select a rate interval"
-        if (startRate.value == 0.0) errors["startRate"] = "Start rate must be a non-zero value"
-        if (rateValue.value == 0.0) errors["rateValue"] = "Rate value must be a non-zero value"
+        if (rateInterval.value == RateInterval.None) errors["rateInterval"] =
+            "Please select a rate interval"
+        if (startRate.value.toDouble() == 0.0) errors["startRate"] =
+            "Start rate must be a non-zero value"
+        if (rateValue.value.toDouble() == 0.0) errors["rateValue"] =
+            "Rate value must be a non-zero value"
         return errors.toMap().also {
             this.errors.value = it
         }
@@ -31,10 +34,10 @@ class RateBuilderViewModel: BaseViewModel() {
         return UpdateRateDTO(
             type = rateType.value.ordinal,
             interval = rateInterval.value.ordinal,
-            freeHours = freeHours.value,
+            freeHours = freeHours.value.toInt(),
             payForFreeHoursWhenExceeding = payFreeHoursWhenExceeded.value,
-            startingRate = startRate.value,
-            rate = rateValue.value
+            startingRate = startRate.value.toDouble(),
+            rate = rateValue.value.toDouble()
         )
     }
 
@@ -49,10 +52,10 @@ class RateBuilderViewModel: BaseViewModel() {
             RateInterval.Daily.ordinal -> RateInterval.Daily
             else -> RateInterval.None
         }
-        freeHours.value = savedRate.freeHours
+        freeHours.value = savedRate.freeHours.toString()
         payFreeHoursWhenExceeded.value = savedRate.payForFreeHoursWhenExceeding
-        startRate.value = savedRate.startingRate
-        rateValue.value = savedRate.rate
+        startRate.value = savedRate.startingRate.toString()
+        rateValue.value = savedRate.rate.toString()
     }
 }
 
