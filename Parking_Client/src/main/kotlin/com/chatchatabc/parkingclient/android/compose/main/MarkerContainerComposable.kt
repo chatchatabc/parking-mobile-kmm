@@ -19,7 +19,6 @@ import com.chatchatabc.parking.realm.ParkingLotRealmObject
 import com.chatchatabc.parkingclient.android.R
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMapComposable
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberMarkerState
@@ -49,12 +48,6 @@ fun MarkerContainerComposable(
         }
 
         Marker(state = marker, icon = icon)
-
-        Circle(
-            center = marker.position,
-            radius = 20.0,
-            fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-        )
     }
 }
 
