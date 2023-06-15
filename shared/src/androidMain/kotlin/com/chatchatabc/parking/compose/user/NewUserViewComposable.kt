@@ -1,5 +1,7 @@
-package com.chatchatabc.parkingclient.android.compose.user
+package com.chatchatabc.parking.compose.user
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -33,12 +36,12 @@ import com.chatchatabc.parking.viewModel.NewUserViewModel
 
 // TODO: Scope composables better
 @Composable
-fun NewUserViewComposable(viewModel: NewUserViewModel, onContinue: () -> Unit = {}) {
+fun NewUserViewComposable(viewModel: NewUserViewModel, onContinue: () -> Unit) {
     val firstName by viewModel.firstName.collectAsState("")
     val lastName by viewModel.lastName.collectAsState("")
     val email by viewModel.email.collectAsState("")
 
-    val isLoading by viewModel.isLoading.collectAsState()
+    val loadState by viewModel.loadState.collectAsState()
     val uiState by viewModel.uiState.collectAsState()
 
     val errors by viewModel.errors.collectAsState()
@@ -63,11 +66,12 @@ fun NewUserViewComposable(viewModel: NewUserViewModel, onContinue: () -> Unit = 
                     Box(
                         Modifier
                             .verticalScroll(rememberScrollState())
-                            .padding(32.dp)
+//                            .padding(32.dp)
                             .fillMaxWidth()
+                            .height(IntrinsicSize.Max)
                             .width(IntrinsicSize.Max)
                     ) {
-                        Column {
+                        Column(Modifier.padding(32.dp)) {
                             Text(text = "Full Name", style = MaterialTheme.typography.labelLarge)
                             OutlinedTextField(
                                 modifier = Modifier.fillMaxWidth(),
@@ -94,11 +98,22 @@ fun NewUserViewComposable(viewModel: NewUserViewModel, onContinue: () -> Unit = 
                                 modifier = Modifier.fillMaxWidth(),
                                 value = email,
                                 onValueChange = { viewModel.email.value = it },
-//                            label = { Text("Email") },
+                                label = { Text("Email") },
                                 supportingText = { Text("Optional") }
                             )
                         }
+                        if (loadState) {
+                            Box(modifier = Modifier
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                                .clickable(enabled = false) {}
+                                .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
+
                 }
                 Button(
                     onClick = {
@@ -107,7 +122,8 @@ fun NewUserViewComposable(viewModel: NewUserViewModel, onContinue: () -> Unit = 
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(ButtonDefaults.MinHeight),
-                    colors = ButtonDefaults.elevatedButtonColors()
+                    colors = ButtonDefaults.elevatedButtonColors(),
+                    enabled = !loadState
                 ) {
                     Text("Save")
                 }

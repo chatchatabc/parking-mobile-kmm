@@ -9,9 +9,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.chatchatabc.parking.compose.Theme.AppTheme
+import com.chatchatabc.parking.compose.user.NewUserViewComposable
 import com.chatchatabc.parking.di.NewUserModule
 import com.chatchatabc.parking.viewModel.NewUserViewModel
-import com.chatchatabc.parkingclient.android.compose.user.NewUserViewComposable
 import org.koin.android.ext.android.inject
 import org.koin.core.context.loadKoinModules
 
