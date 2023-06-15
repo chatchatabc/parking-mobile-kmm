@@ -204,7 +204,7 @@ class NewParkingLotViewModel(val parkingApi: ParkingAPI, val rateApi: RateAPI, v
         viewModelScope.launch {
             val result = parkingApi.setToPending()
             if (result.errors.isEmpty()) {
-                page.value = 3
+                page.value += 1
             }
         }
     }
