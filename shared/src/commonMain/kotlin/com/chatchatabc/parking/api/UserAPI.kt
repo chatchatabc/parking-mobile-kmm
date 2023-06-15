@@ -1,5 +1,6 @@
 package com.chatchatabc.parking.api
 
+import com.chatchatabc.parking.Config
 import com.chatchatabc.parking.model.User
 import com.chatchatabc.parking.model.UserNotification
 import com.chatchatabc.parking.model.dto.UpdateUserDTO
@@ -7,8 +8,9 @@ import com.chatchatabc.parking.model.response.ApiResponse
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 
-class UserAPI(val client: HttpClient): AbstractAPI(client) {
+class UserAPI(val client: HttpClient) : AbstractAPI(client) {
     val ENDPOINT = "/api/user"
+
     suspend fun getUser(): ApiResponse<User> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
 
@@ -17,4 +19,21 @@ class UserAPI(val client: HttpClient): AbstractAPI(client) {
 
     suspend fun getNotificationId(): ApiResponse<UserNotification> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/notification-id")
+
+    /**
+     * Upload avatar
+     */
+    suspend fun uploadAvatar(
+        image: ByteArray,
+        onProgress: (Int) -> Unit
+    ): ApiResponse<Unit> =
+        makeUploadRequest("$ENDPOINT/upload-avatar", image, onUploadUpdate = { sent, totalSize ->
+            onProgress((sent.toDouble() / totalSize.toDouble() * 100).toInt())
+        })
+
+    /**
+     * Let the image loader library handle the loading of the image.
+     * This function will only return the url of the image.
+     */
+    fun getAvatar(id: String): String = "${Config.BASE_URL}$ENDPOINT/avatar/$id"
 }
