@@ -10,15 +10,19 @@ import io.nats.client.Options
 import io.nats.client.impl.NatsImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 
 class NatsService() {
-//    val connection = Nats.connect(NATS_BASE_URL)
+    enum class ConnectionState {
+        DISCONNECTED,
+        CONNECTED
+    }
 
     var notificationId: String = "notificationId"
     var onMessageRecieved: (Message) -> Unit = { println(it) }
-    var started = false
+    var state = MutableStateFlow(ConnectionState.DISCONNECTED)
 
     lateinit var connection: Connection
 
@@ -29,20 +33,23 @@ class NatsService() {
                 when (events) {
                     ConnectionListener.Events.DISCONNECTED -> {
                         println("Disconnected from NATS server")
+                        state.value = ConnectionState.DISCONNECTED
                     }
 
                     ConnectionListener.Events.RECONNECTED -> {
                         println("Reconnected to NATS server")
+                        state.value = ConnectionState.CONNECTED
                     }
 
                     ConnectionListener.Events.CLOSED -> {
                         println("Closed connection to NATS server")
+                        state.value = ConnectionState.DISCONNECTED
                     }
 
                     ConnectionListener.Events.CONNECTED -> {
                         println("Connected to NATS server")
+                        state.value = ConnectionState.CONNECTED
                     }
-
                     else -> {
                         println("Unknown event: $events")
                     }
@@ -50,15 +57,18 @@ class NatsService() {
             }
             .errorListener(object : ErrorListener {
                 override fun errorOccurred(conn: Connection?, error: String?) {
-                    println("The server notificed the client with: $error")
+                    println("The server notified the client with: $error")
+                    state.value = ConnectionState.DISCONNECTED
                 }
 
                 override fun exceptionOccurred(conn: Connection?, exp: Exception?) {
                     println("The connection handled an exception: ${exp!!.localizedMessage}")
+                    state.value = ConnectionState.DISCONNECTED
                 }
 
                 override fun slowConsumerDetected(conn: Connection?, consumer: Consumer?) {
                     println("The server detected a slow consumer: $consumer")
+                    state.value = ConnectionState.DISCONNECTED
                 }
             }
             )
@@ -74,12 +84,14 @@ class NatsService() {
             }
     }
 
-    fun listen() {
-        if (started) {
+    fun listen(notifId: String) {
+        if (state.value == ConnectionState.CONNECTED) {
             return
         }
 
+        notificationId = notifId
+
         connection.createDispatcher(onMessageRecieved).subscribe(notificationId)
-        started = true
+        state.value = ConnectionState.CONNECTED
     }
 }
