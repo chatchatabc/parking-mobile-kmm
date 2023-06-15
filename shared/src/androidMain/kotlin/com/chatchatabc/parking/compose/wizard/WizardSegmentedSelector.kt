@@ -37,8 +37,7 @@ fun <T> WizardSegmentedSelector(
     errors: Map<String, String>
 ) {
 
-    Column(
-    ) {
+    Column {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
@@ -61,7 +60,7 @@ fun <T> WizardSegmentedSelector(
             text = errors[keyName] ?: "",
             color = MaterialTheme.colorScheme.error,
             style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
         )
     }
 }
