@@ -87,34 +87,21 @@ import java.util.concurrent.Executors
 
 class QRScanActivity: ComponentActivity() {
     val koinComponent = loadKoinModules(QRScanModule)
-
     val viewModel: QRScanViewModel by inject()
 
     val onCameraPermissionGranted =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                viewModel.hasPermission.value = true
-            } else {
-                viewModel.hasPermission.value = false
-            }
+            viewModel.hasPermission.value = isGranted
         }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        viewModel.hasPermission.value = EasyPermissions.hasPermissions(this, Manifest.permission.CAMERA)
 
         if (EasyPermissions.hasPermissions(this, Manifest.permission.CAMERA)) {
             openQRScanner()
         } else {
-            EasyPermissions.requestPermissions(
-                this,
-                "Camera permission is required to scan QR code",
-                0,
-                Manifest.permission.CAMERA
-            )
+            onCameraPermissionGranted.launch(Manifest.permission.CAMERA)
         }
     }
 
