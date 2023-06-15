@@ -1,11 +1,15 @@
 package com.chatchatabc.parking.viewModel
 
+import androidx.lifecycle.viewModelScope
 import com.chatchatabc.parking.api.InvoiceAPI
 import com.chatchatabc.parking.api.VehicleAPI
 import com.chatchatabc.parking.model.Invoice
 import com.chatchatabc.parking.model.Vehicle
 import com.chatchatabc.parking.model.dto.CreateInvoiceDTO
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
 
 class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : BaseViewModel(invoiceAPI, vehicleAPI) {
 
@@ -18,7 +22,7 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
 
     fun checkVehicle(string: String) {
         uiState.value = QRScanState.LOADING
-        load {
+        viewModelScope.launch {
             val vehicle = vehicleAPI.getVehicle(string)
 
             println("Checking vehicle: $string")
@@ -28,7 +32,7 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
                 }
                 println("somethign went wrong")
                 uiState.value = QRScanState.VEHICLE_INVALID
-                return@load
+                return@launch
             }
 
             currentVehicle.value = vehicle.data
@@ -37,7 +41,7 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
             if (currentVehicle.value == null) {
                 println("Vehicle is null")
                 uiState.value = QRScanState.VEHICLE_INVALID
-                return@load
+                return@launch
             }
 
             println("Vehicle is not null")
@@ -50,7 +54,7 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
                     println("Error: $it")
                 }
                 uiState.value = QRScanState.VEHICLE_INVALID
-                return@load
+                return@launch
             }
 
             currentInvoice.value = invoice.data
@@ -64,31 +68,27 @@ class QRScanViewModel(val invoiceAPI: InvoiceAPI, val vehicleAPI: VehicleAPI) : 
             if (currentInvoice.value == null) {
                 println("Invoice is null, parking")
                 uiState.value = QRScanState.VEHICLE_PARKING
-                return@load
+                return@launch
             } else {
                 println("Invoice is not null, leaving")
                 uiState.value = QRScanState.VEHICLE_LEAVING
-                return@load
+                return@launch
             }
         }
     }
 
-    fun park(estimate: Int) {
-        load {
-            invoiceAPI.startInvoice(currentVehicle.value!!.vehicleUuid, CreateInvoiceDTO(estimate))
-            uiState.value = QRScanState.VEHICLE_PARKED
-        }
-    }
+    fun park(estimate: Int) = flow<Unit> {
+        invoiceAPI.startInvoice(currentVehicle.value!!.vehicleUuid, CreateInvoiceDTO(estimate))
+        uiState.value = QRScanState.VEHICLE_PARKED
+    }.launchIn(viewModelScope)
 
-    fun leave(paid: Boolean) {
-        load {
-            invoiceAPI.endInvoice(currentInvoice.value!!.invoiceUuid)
-            if (paid) {
-                invoiceAPI.payInvoice(currentInvoice.value!!.invoiceUuid)
-            }
-            uiState.value = QRScanState.VEHICLE_LEFT
+    fun leave(paid: Boolean) = flow<Unit> {
+        invoiceAPI.endInvoice(currentInvoice.value!!.invoiceUuid)
+        if (paid) {
+            invoiceAPI.payInvoice(currentInvoice.value!!.invoiceUuid)
         }
-    }
+        uiState.value = QRScanState.VEHICLE_LEFT
+    }.launchIn(viewModelScope)
 
     fun cancel() {
         uiState.value = QRScanState.SCAN
