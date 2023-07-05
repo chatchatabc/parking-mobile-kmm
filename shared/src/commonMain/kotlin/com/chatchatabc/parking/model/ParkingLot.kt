@@ -1,6 +1,7 @@
-    package com.chatchatabc.parking.model
+package com.chatchatabc.parking.model
 
 import kotlinx.serialization.Serializable
+
 @Serializable
 data class ParkingLot(
     val parkingLotUuid: String,
