@@ -1,16 +1,17 @@
 package com.chatchatabc.parking.model
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Route(
     val routeUuid: String,
-    val name: String?,
-    val description: String?,
+    val name: String,
+    val description: String,
     val status: Int,
-    val points: String,
-    val createdAt: String,
-    val updatedAt: String?,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime,
+    val slug: String,
 ) {
     companion object {
         val INACTIVE = -1
