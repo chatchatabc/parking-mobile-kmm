@@ -12,10 +12,7 @@ import com.chatchatabc.parking.api.RateAPI
 import com.chatchatabc.parking.api.UserAPI
 import com.chatchatabc.parking.api.VehicleAPI
 import com.chatchatabc.parking.httpClient
-import com.chatchatabc.parking.realm.ParkingLotRealmObject
-import com.chatchatabc.parking.service.NatsService
 import com.chatchatabc.parking.viewModel.AccountViewModel
-import com.chatchatabc.parking.viewModel.ClientMainViewModel
 import com.chatchatabc.parking.viewModel.LoginViewModel
 import com.chatchatabc.parking.viewModel.MainViewModel
 import com.chatchatabc.parking.viewModel.NewParkingLotViewModel
@@ -25,8 +22,6 @@ import com.chatchatabc.parking.viewModel.QRScanViewModel
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.observer.ResponseObserver
 import io.ktor.client.statement.bodyAsText
-import io.realm.kotlin.Realm
-import io.realm.kotlin.RealmConfiguration
 import kotlinx.serialization.json.Json
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
@@ -102,25 +97,12 @@ val MainModule = module {
     }
 }
 
-val ParkingRealmModule = module {
-    val config = RealmConfiguration.Builder(schema = setOf(ParkingLotRealmObject::class)).apply {
-        deleteRealmIfMigrationNeeded()
-    }.build()
-    single(named("parkingRealm")) { Realm.open(config) }
-}
-
-val MainMapModule = module {
-    includes(TokenModule, EncryptedSharedPreferencesModule)
-    single { UserAPI(get()) }
-    single { ProfileAPI(get()) }
-    single { ParkingAPI(get()) }
-    single { VehicleAPI(get()) }
-    single { InvoiceAPI(get()) }
-    single { NatsService() }
-    viewModel {
-        ClientMainViewModel(get(), get(), get(), get(), get(), get(named("parkingRealm")), get(), get())
-    }
-}
+//val RealmModule = module {
+//    val config = RealmConfiguration.Builder(schema = setOf(ParkingLotRealmObject::class, RouteRealmObject::class)).apply {
+//        deleteRealmIfMigrationNeeded()
+//    }.build()
+//    single(named("realm")) { Realm.open(config) }
+//}
 
 val NewVehicleModule = module {
     includes(TokenModule, EncryptedSharedPreferencesModule)
