@@ -8,3 +8,11 @@ data class InvoicePayload(
     val vehicleUuid: String,
     val invoiceUuid: String
 )
+
+@Serializable
+data class JeepneyUpdatePayload(
+    val jeepneyUuid: String,
+    val latitude: Double,
+    val longitude: Double,
+    val direction: Int
+)

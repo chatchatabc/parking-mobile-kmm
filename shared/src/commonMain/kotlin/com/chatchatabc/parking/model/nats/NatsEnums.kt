@@ -5,5 +5,8 @@ enum class NatsEnums {
     // Invoice
     INVOICE_CREATED,
     INVOICE_ENDED,
-    INVOICE_PAID
+    INVOICE_PAID,
+
+    // Jeepney
+    JEEPNEY_LOCATION_UPDATE
 }
