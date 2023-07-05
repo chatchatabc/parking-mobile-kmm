@@ -2,7 +2,8 @@ plugins {
     id("com.android.application")
     kotlin("android")
     id("io.realm.kotlin")
-
+    id("com.google.devtools.ksp")
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -21,7 +22,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.4"
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -68,12 +69,6 @@ dependencies {
     // Maps Widgets
     implementation("com.google.maps.android:maps-compose-widgets:2.11.2")
 
-    // Realm
-    implementation("io.realm.kotlin:library-base:1.8.0")
-
-    // https://mvnrepository.com/artifact/io.realm/realm-android-kotlin-extensions
-    implementation("io.realm:realm-android-kotlin-extensions:10.15.1")
-
     // https://mvnrepository.com/artifact/io.github.g0dkar/qrcode-kotlin-android
     implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
 
@@ -86,4 +81,13 @@ dependencies {
 
     // Kotlinx-datetime
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    implementation("com.mapbox.maps:android:10.14.0")
+
+    val room_version = "2.5.2"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
 }

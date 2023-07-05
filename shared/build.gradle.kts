@@ -75,9 +75,6 @@ kotlin {
 
                 implementation("androidx.security:security-crypto:1.0.0")
 
-                // Form Builder
-                implementation("com.github.jkuatdsc:form-builder:1.0.6")
-
                 implementation("androidx.compose.ui:ui:1.4.1")
                 implementation("androidx.compose.ui:ui-tooling:1.4.1")
                 implementation("androidx.compose.foundation:foundation:1.4.1")
@@ -87,18 +84,15 @@ kotlin {
 
                 implementation("com.google.android.gms:play-services-location:21.0.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
-
                 implementation("com.google.android.gms:play-services-maps:18.1.0")
 
-                // https://mvnrepository.com/artifact/io.realm/realm-android-kotlin-extensions
-                implementation("io.realm:realm-android-kotlin-extensions:10.15.1")
-
-                // https://mvnrepository.com/artifact/io.github.g0dkar/qrcode-kotlin-android
                 implementation("io.github.g0dkar:qrcode-kotlin-android:3.3.0")
                 
                 implementation("com.spoton:nats-android:2.4.2")
 
                 implementation("io.coil-kt:coil:1.3.2")
+
+                implementation("com.mapbox.maps:android:10.14.0")
             }
         }
 //        val androidUnitTest by getting
