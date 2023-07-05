@@ -19,10 +19,10 @@ class ParkingAPI(val client: HttpClient) : AbstractAPI(client) {
         makeRequest(HttpMethod.Put, "$ENDPOINT/set-pending")
 
     suspend fun createDraft(payload: ParkingLotDraftDTO): ApiResponse<Unit> =
-        makeRequest(HttpMethod.Post, "$ENDPOINT/register", payload)
+        makeRequest(HttpMethod.Post, "$ENDPOINT", payload)
 
     suspend fun saveDraft(payload: ParkingLotDraftDTO): ApiResponse<Unit> =
-        makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
+        makeRequest(HttpMethod.Put, "$ENDPOINT", payload)
 
     suspend fun getParkingLot(): ApiResponse<ParkingLot> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
@@ -64,9 +64,6 @@ class ParkingAPI(val client: HttpClient) : AbstractAPI(client) {
             pagination = pagination,
         )
 
-    /**
-     * Get all parking lots
-     */
-    suspend fun getAllParkingLots(pagination: Pagination? = null): ApiResponse<Page<ParkingLot>> =
-        makeRequest(HttpMethod.Get, ENDPOINT, pagination = pagination)
+    suspend fun getAllParkingLots(pagination: Pagination? = null): ApiResponse<Page<ParkingLot>?> =
+        makeRequest(HttpMethod.Get, "${ENDPOINT}", pagination = pagination)
 }

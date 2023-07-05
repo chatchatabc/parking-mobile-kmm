@@ -15,7 +15,7 @@ class UserAPI(val client: HttpClient) : AbstractAPI(client) {
         makeRequest(HttpMethod.Get, "$ENDPOINT/me")
 
     suspend fun updateProfile(payload: UpdateUserDTO): ApiResponse<Unit> =
-        makeRequest(HttpMethod.Put, "$ENDPOINT/update", payload)
+        makeRequest(HttpMethod.Put, "$ENDPOINT", payload)
 
     suspend fun getNotificationId(): ApiResponse<UserNotification> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/notification-id")

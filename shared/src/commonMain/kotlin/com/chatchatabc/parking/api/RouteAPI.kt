@@ -4,6 +4,7 @@ import com.chatchatabc.parking.model.Route
 import com.chatchatabc.parking.model.pagination.Page
 import com.chatchatabc.parking.model.pagination.Pagination
 import com.chatchatabc.parking.model.response.ApiResponse
+import com.chatchatabc.parking.model.response.RouteNodesAndEdges
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 import kotlinx.datetime.LocalDateTime
@@ -15,7 +16,7 @@ class RouteAPI(client: HttpClient) : AbstractAPI(client) {
      * Get all routes
      */
     suspend fun getAllRoutes(pagination: Pagination? = null): ApiResponse<Page<Route>> =
-        makeRequest(HttpMethod.Get, ENDPOINT, pagination = pagination)
+        makeRequest(HttpMethod.Get, "$ENDPOINT", pagination = pagination)
 
     /**
      * Get last updated status at of a route
@@ -25,4 +26,9 @@ class RouteAPI(client: HttpClient) : AbstractAPI(client) {
         updatedAt: LocalDateTime
     ): ApiResponse<Route> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/$routeUuid/$updatedAt")
+
+    suspend fun getNodesAndEdgesOfRoute(
+        routeUuid: String
+    ): ApiResponse<RouteNodesAndEdges> =
+        makeRequest(HttpMethod.Get, "$ENDPOINT/nodes-and-edges/$routeUuid")
 }

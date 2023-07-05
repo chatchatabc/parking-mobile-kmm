@@ -11,7 +11,7 @@ class DashboardAPI(client: HttpClient): AbstractAPI(client) {
     val ENDPOINT = "/api/dashboard"
 
     suspend fun getDashboardStatistics(): ApiResponse<DashboardStatistics> =
-        makeRequest(HttpMethod.Get, "$ENDPOINT/")
+        makeRequest(HttpMethod.Get, "$ENDPOINT")
 
     suspend fun searchForVehicle(query: String, parkingLotUuid: String): ApiResponse<Page<Vehicle>> =
         makeRequest(HttpMethod.Get, "$ENDPOINT/search/$parkingLotUuid/$query")
