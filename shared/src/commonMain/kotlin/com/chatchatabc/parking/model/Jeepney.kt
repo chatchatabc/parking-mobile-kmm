@@ -15,6 +15,7 @@ data class Jeepney(
     val status: Int,
     val createdAt: String,
     val updatedAt: String?,
+    val direction: Int = -1
 ) {
     companion object {
         val INACTIVE = -1
